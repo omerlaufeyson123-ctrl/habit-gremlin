@@ -1,4 +1,4 @@
-<title>Habitron</title>
+<title>Habit Gremlin</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap">
 <style>
@@ -159,8 +159,8 @@ button { cursor: pointer; }
 <div class="wrap">
   <section class="welcome" id="welcome">
     <div id="welcomeBot"></div>
-    <h1>Hi, welcome to Habitron! 🤖</h1>
-    <p>Your friendly lil bot that'll fix your habits 😊 Tell me what you did today and I'll figure out what's a good habit and what's a bad one. Jokes included.</p>
+    <h1>Hi, welcome to Habit Gremlin! 👹</h1>
+    <p>Your friendly lil gremlin that'll fix your habits 😊 Tell me what you did today and I'll figure out what's a good habit and what's a bad one. Jokes included.</p>
     <form id="startForm">
       <div class="field">
         <label for="nameInput">What should I call you?</label>
@@ -193,16 +193,16 @@ button { cursor: pointer; }
     </section>
 
     <div class="cols">
-      <section class="chat" aria-label="Chat with Habitron">
+      <section class="chat" aria-label="Chat with Habit Gremlin">
         <div class="chat-top">
           <div id="chatBot"></div>
-          <div><b>Habitron</b><span>always on your side 💜</span></div>
+          <div><b>Habit Gremlin</b><span>always on your side 💜</span></div>
         </div>
         <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
         <div class="ideas" id="ideas"></div>
         <form id="chatForm">
-          <label class="sr" for="chatInput">Tell Habitron what you did today</label>
-          <input id="chatInput" autocomplete="off" placeholder="tell habitron what you did today...">
+          <label class="sr" for="chatInput">Tell Habit Gremlin what you did today</label>
+          <input id="chatInput" autocomplete="off" placeholder="tell habit gremlin what you did today...">
           <button class="btn" type="submit">Send</button>
         </form>
       </section>
@@ -246,17 +246,21 @@ button { cursor: pointer; }
     return '<svg viewBox="0 0 64 64" width="' + size + '" height="' + size + '" aria-hidden="true"><rect width="64" height="64" fill="' + a.bg + '"/>' + a.svg + '</svg>';
   }
   function botSVG() {
+    var G = '#7bc043', D = '#3f7a1e', F = '#a6dc6c';
     return '<svg class="bot" data-mood="happy" viewBox="0 0 120 120" aria-hidden="true">' +
-      '<line x1="60" y1="26" x2="60" y2="14" stroke="var(--bot)" stroke-width="5" stroke-linecap="round"/><circle class="bulb" cx="60" cy="10" r="6" fill="var(--accent)"/>' +
-      '<rect x="8" y="52" width="12" height="22" rx="6" fill="var(--bot)"/><rect x="100" y="52" width="12" height="22" rx="6" fill="var(--bot)"/>' +
-      '<rect x="16" y="26" width="88" height="72" rx="28" fill="var(--bot)"/><rect x="27" y="38" width="66" height="48" rx="20" fill="var(--bot-face)"/>' +
-      '<ellipse class="eye" cx="46" cy="58" rx="6" ry="8" fill="var(--bot-eye)"/><ellipse class="eye" cx="74" cy="58" rx="6" ry="8" fill="var(--bot-eye)"/>' +
-      '<g class="cheerEyes" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"><path d="M39 62 Q46 50 53 62"/><path d="M67 62 Q74 50 81 62"/></g>' +
-      '<circle cx="36" cy="72" r="5" fill="#ff8fb1" opacity="0.6"/><circle cx="84" cy="72" r="5" fill="#ff8fb1" opacity="0.6"/>' +
-      '<path class="mouth m-happy" d="M51 70 Q60 80 69 70" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"/>' +
-      '<path class="mouth m-sad" d="M52 78 Q60 69 68 78" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"/>' +
-      '<circle class="mouth m-think" cx="60" cy="74" r="3.6" fill="var(--bot-eye)"/>' +
-      '<path class="mouth m-cheer" d="M49 68 Q60 90 71 68 Z" fill="var(--bot-eye)"/></svg>';
+      '<path d="M22 56 L2 30 L36 40 Z" fill="' + G + '" stroke="' + D + '" stroke-width="3" stroke-linejoin="round"/><path d="M98 56 L118 30 L84 40 Z" fill="' + G + '" stroke="' + D + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M16 40 L24 50 L12 46 Z" fill="#ff8fb1"/><path d="M104 40 L96 50 L108 46 Z" fill="#ff8fb1"/>' +
+      '<path d="M50 24 Q60 6 70 24 Z" fill="' + G + '" stroke="' + D + '" stroke-width="3" stroke-linejoin="round" class="bulb"/>' +
+      '<ellipse cx="60" cy="68" rx="42" ry="40" fill="' + G + '" stroke="' + D + '" stroke-width="3"/>' +
+      '<ellipse cx="60" cy="78" rx="28" ry="22" fill="' + F + '"/>' +
+      '<ellipse cx="42" cy="56" rx="12" ry="14" fill="#fff8d6" stroke="' + D + '" stroke-width="2"/><ellipse cx="78" cy="56" rx="12" ry="14" fill="#fff8d6" stroke="' + D + '" stroke-width="2"/>' +
+      '<ellipse class="eye" cx="44" cy="58" rx="5" ry="9" fill="#26224d"/><ellipse class="eye" cx="76" cy="58" rx="5" ry="9" fill="#26224d"/>' +
+      '<g class="cheerEyes" fill="none" stroke="#26224d" stroke-width="4" stroke-linecap="round"><path d="M34 62 Q42 48 50 62"/><path d="M70 62 Q78 48 86 62"/></g>' +
+      '<path d="M56 66 L60 72 L64 66" fill="none" stroke="' + D + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<g class="mouth m-happy"><path d="M40 80 Q60 98 80 80 Q60 86 40 80 Z" fill="#26224d" stroke="#26224d" stroke-width="3" stroke-linejoin="round"/><path d="M46 82 L50 89 L54 84 Z M66 84 L70 89 L74 82 Z" fill="#fff"/></g>' +
+      '<g class="mouth m-sad"><path d="M44 90 Q60 76 76 90" fill="none" stroke="#26224d" stroke-width="4" stroke-linecap="round"/></g>' +
+      '<g class="mouth m-think"><ellipse cx="60" cy="86" rx="6" ry="5" fill="#26224d"/></g>' +
+      '<g class="mouth m-cheer"><path d="M36 78 Q60 106 84 78 Z" fill="#26224d" stroke="#26224d" stroke-width="3" stroke-linejoin="round"/><path d="M42 79 L47 90 L53 80 Z M67 80 L73 90 L78 79 Z" fill="#fff"/></g></svg>';
   }
   function setMood(m) {
     document.querySelectorAll('.bot').forEach(function (b) { b.setAttribute('data-mood', m); });
@@ -389,18 +393,18 @@ button { cursor: pointer; }
   var GEN_GOOD = [
     function (n) { return '“' + n + '” done! side quest complete 🎉'; },
     function (n) { return 'nice, “' + n + '” counted 😎 keep stacking those wins, ' + nick() + '!'; },
-    function (n) { return '“' + n + '” again?! 🥹 habitron is so proud of you, ' + nick(); }
+    function (n) { return '“' + n + '” again?! 🥹 habit gremlin is so proud of you, ' + nick(); }
   ];
   var GEN_BAD = [
     function (n) { return 'oof, “' + n + '” happened 😅 we all slip, ' + nick() + '. tomorrow is a new run!'; },
-    function (n) { return 'noted: “' + n + '” 📝 habitron believes in you anyway, ' + nick() + ' 💜'; },
+    function (n) { return 'noted: “' + n + '” 📝 habit gremlin believes in you anyway, ' + nick() + ' 💜'; },
     function (n) { return 'aww, “' + n + '” again 🥺 at least you were honest, and honesty is worth XP in my book'; }
   ];
   var GEN_WIN = [
     function (n) { return 'you resisted “' + n + '”?! 😳🔥 that is boss-level willpower, ' + nick() + '!'; },
-    function (n) { return 'resisted “' + n + '”! 🛡️ habitron is doing a little victory dance 💃'; }
+    function (n) { return 'resisted “' + n + '”! 🛡️ habit gremlin is doing a little victory dance 💃'; }
   ];
-  var TIPS = {"scroll": ["set a 30-minute daily limit in your phone settings ⏱️", "move social apps off your home screen so they take 3 taps to open 📲", "your phone sleeps outside the bedroom at night 🛏️", "turn off notifications for social apps, so you open them on purpose 🔕"], "junk": ["keep a healthy snack within reach (fruit, nuts), so junk is not the easy option 🍎", "drink a glass of water first, sometimes thirst pretends to be hunger 💧", "never shop hungry, or you will buy the whole snack aisle 🛒"], "late": ["set a \"bedtime\" alarm 30 minutes before you want to sleep ⏰", "no screens for the last 20 minutes in bed, try a book or music 📖", "wake up at the same time every day, even weekends, to reset your body clock ☀️"], "skip": ["lay out your gym clothes the night before 👟", "start tiny: 10 minutes counts, and you can always do more 🕙", "make a playlist you only play during workouts 🎧"], "procr": ["break the task into one tiny first step and do only that 🪜", "try 25 minutes of focus, then a 5-minute break (the pomodoro trick) 🍅", "put your phone in another room while you work 📵"], "smoke": ["notice your triggers (coffee, stress, boredom) and plan a swap for each ☕", "when a craving hits, wait 10 minutes, cravings usually pass 🕙", "a doctor or a quit-smoking helpline can give you real support and options 🩺"], "nails": ["keep your nails short and filed, so there is less to bite ✂️", "give your hands a job: a stress ball or a fidget toy 🧸", "notice when it happens (bored? stressed?) and swap in something else 👀"], "spend": ["wait 48 hours before any non-essential buy 🛍️", "unsubscribe from store emails and turn off shopping notifications 📭", "set a small weekly \"fun money\" budget and stick to it 💰"], "adult": ["keep your phone out of the bedroom at night 📵", "use a content blocker app or browser setting to add some friction 🛡️", "notice your trigger times and plan something else for them: a walk, a call, a game 🎮"], "gaming": ["decide your play time before you start and set a timer ⏲️", "finish your real-life daily quests first, then game as the reward 🏆", "stop at the end of a match, never on \"just one more\" 😅"], "workout": ["schedule it like a meeting, same time every day 📅", "track your lifts or runs so you can see your progress 📈", "find a gym buddy, it is harder to skip when someone is waiting 🤝"], "walk": ["take a short walk after meals, it helps digestion too 🍽️", "take phone calls while walking 📞", "try a 10-minute walk outside every morning 🌅"], "read": ["keep a book by your bed and read 5 pages before sleep 📖", "audiobooks count too 🎧", "carry a book or e-reader so waiting time becomes reading time 🚌"], "water": ["keep a bottle on your desk and refill it every time it is empty 🚰", "drink a glass with every meal 🍽️", "add lemon or mint if plain water feels boring 🍋"], "sleep": ["dim the lights an hour before bed 💡", "keep your room cool and dark 🌙", "avoid caffeine after the afternoon ☕"], "mind": ["start with just 2 minutes a day 🧘", "write 3 things you are grateful for before bed ✍️", "take 5 slow breaths whenever you feel stressed 🌬️"], "study": ["study in short, focused blocks with breaks 🍅", "teach what you learned to someone (or to Habitron) 🧠", "review your notes the next day so it sticks 🔁"], "art": ["set a small daily art goal, even 20 minutes counts 🎨", "post your progress online, people cheering you on helps 📸", "keep a quick warm-up sketch routine before big projects ✏️"], "clean": ["do a 10-minute tidy every evening 🧹", "clean as you go while cooking 🍳", "put things back right after you use them 📦"], "cook": ["plan your meals for the week on one day 📝", "cook double and save leftovers for tomorrow 🥡", "keep a few easy recipes you can make without thinking 🍲"], "stretch": ["stretch for 5 minutes right after waking up 🌅", "stretch between long gaming or work sessions 🎮", "pair stretching with a show or a song so it feels shorter 🎶"]};
+  var TIPS = {"scroll": ["set a 30-minute daily limit in your phone settings ⏱️", "move social apps off your home screen so they take 3 taps to open 📲", "your phone sleeps outside the bedroom at night 🛏️", "turn off notifications for social apps, so you open them on purpose 🔕"], "junk": ["keep a healthy snack within reach (fruit, nuts), so junk is not the easy option 🍎", "drink a glass of water first, sometimes thirst pretends to be hunger 💧", "never shop hungry, or you will buy the whole snack aisle 🛒"], "late": ["set a \"bedtime\" alarm 30 minutes before you want to sleep ⏰", "no screens for the last 20 minutes in bed, try a book or music 📖", "wake up at the same time every day, even weekends, to reset your body clock ☀️"], "skip": ["lay out your gym clothes the night before 👟", "start tiny: 10 minutes counts, and you can always do more 🕙", "make a playlist you only play during workouts 🎧"], "procr": ["break the task into one tiny first step and do only that 🪜", "try 25 minutes of focus, then a 5-minute break (the pomodoro trick) 🍅", "put your phone in another room while you work 📵"], "smoke": ["notice your triggers (coffee, stress, boredom) and plan a swap for each ☕", "when a craving hits, wait 10 minutes, cravings usually pass 🕙", "a doctor or a quit-smoking helpline can give you real support and options 🩺"], "nails": ["keep your nails short and filed, so there is less to bite ✂️", "give your hands a job: a stress ball or a fidget toy 🧸", "notice when it happens (bored? stressed?) and swap in something else 👀"], "spend": ["wait 48 hours before any non-essential buy 🛍️", "unsubscribe from store emails and turn off shopping notifications 📭", "set a small weekly \"fun money\" budget and stick to it 💰"], "adult": ["keep your phone out of the bedroom at night 📵", "use a content blocker app or browser setting to add some friction 🛡️", "notice your trigger times and plan something else for them: a walk, a call, a game 🎮"], "gaming": ["decide your play time before you start and set a timer ⏲️", "finish your real-life daily quests first, then game as the reward 🏆", "stop at the end of a match, never on \"just one more\" 😅"], "workout": ["schedule it like a meeting, same time every day 📅", "track your lifts or runs so you can see your progress 📈", "find a gym buddy, it is harder to skip when someone is waiting 🤝"], "walk": ["take a short walk after meals, it helps digestion too 🍽️", "take phone calls while walking 📞", "try a 10-minute walk outside every morning 🌅"], "read": ["keep a book by your bed and read 5 pages before sleep 📖", "audiobooks count too 🎧", "carry a book or e-reader so waiting time becomes reading time 🚌"], "water": ["keep a bottle on your desk and refill it every time it is empty 🚰", "drink a glass with every meal 🍽️", "add lemon or mint if plain water feels boring 🍋"], "sleep": ["dim the lights an hour before bed 💡", "keep your room cool and dark 🌙", "avoid caffeine after the afternoon ☕"], "mind": ["start with just 2 minutes a day 🧘", "write 3 things you are grateful for before bed ✍️", "take 5 slow breaths whenever you feel stressed 🌬️"], "study": ["study in short, focused blocks with breaks 🍅", "teach what you learned to someone (or to Habit Gremlin) 🧠", "review your notes the next day so it sticks 🔁"], "art": ["set a small daily art goal, even 20 minutes counts 🎨", "post your progress online, people cheering you on helps 📸", "keep a quick warm-up sketch routine before big projects ✏️"], "clean": ["do a 10-minute tidy every evening 🧹", "clean as you go while cooking 🍳", "put things back right after you use them 📦"], "cook": ["plan your meals for the week on one day 📝", "cook double and save leftovers for tomorrow 🥡", "keep a few easy recipes you can make without thinking 🍲"], "stretch": ["stretch for 5 minutes right after waking up 🌅", "stretch between long gaming or work sessions 🎮", "pair stretching with a show or a song so it feels shorter 🎶"]};
   var GEN_TIP_BAD = ["notice what triggers it (time, place, mood) and plan a swap 👀", "make it harder to do: add one extra step between you and the habit 🧱", "keep logging it honestly here, noticing it is step one 📝"], GEN_TIP_GOOD = ["attach it to something you already do every day 🔗", "start small and grow it slowly 🌱", "do it at the same time each day so it becomes automatic ⏰"];
   var MORE = [
     {key:"caffeine", type:"bad", name:"Too much caffeine", emoji:"☕", re:new RegExp("(too (much|many)|so (much|many)|lots of|(\\d+|two|three|four|five|six|seven) (cups?|cans?|shots?|mugs?)( of)?)\\s+(coffee|caffeine|energy drinks?|red bull|monster|espresso|chai|tea)|(coffee|caffeine|energy drinks?|red bull|monster|espresso)\\b.*\\b(too much|all day|jittery|again)|\\bjittery\\b|\\bno (coffee|caffeine|energy drinks?)\\b|(skipped|cut (down|back) on|quit|gave up) (my )?(coffee|caffeine|energy drinks?)","i"), lines:["coffee is just a loan from tomorrow-you ☕ the interest is brutal, champ", "your heart rate just said “bro, chill” 🫀 slow down, soldier"], tips:["stop caffeine by early afternoon so sleep stays safe ☕", "swap every second cup for water or herbal tea", "ask yourself: am i thirsty, bored or actually tired?"]},
@@ -540,7 +544,7 @@ button { cursor: pointer; }
       if (cat) {
         if (seen[cat.key]) return; seen[cat.key] = 1;
         tasks.push({ kind: 'cat', cat: cat, neg: !flipped && cat.type === 'good' && NEG.test(c), resist: cat.type === 'bad' && !cat.noResist && RESIST.test(c) });
-      } else if (c.split(/\s+/).length >= 3 && !/^(i )?(feel|felt|am|was|i'?m)\b/i.test(c) && !/\b(feel|felt|feeling)\b/i.test(c) && !/^(ok(ay)?|yes|no|haha|idk|nothing|nvm)\b/i.test(c) && !/\b(yes|yep|yeah|nope|habit|improve|track it|habitron)\b/i.test(c)) {
+      } else if (c.split(/\s+/).length >= 3 && !/^(i )?(feel|felt|am|was|i'?m)\b/i.test(c) && !/\b(feel|felt|feeling)\b/i.test(c) && !/^(ok(ay)?|yes|no|haha|idk|nothing|nvm)\b/i.test(c) && !/\b(yes|yep|yeah|nope|habit|improve|track it|habitron|gremlin)\b/i.test(c)) {
         tasks.push({ kind: 'unknown', clause: c });
       }
     });
@@ -669,7 +673,7 @@ button { cursor: pointer; }
       ul.innerHTML = '';
       if (!items.length) {
         var li = document.createElement('li'); li.style.borderLeftColor = 'var(--line)';
-        li.innerHTML = '<span class="empty">' + (type === 'good' ? '🌱 Nothing yet. Tell Habitron something good you did today.' : '🫥 Nothing yet. Tell Habitron a habit you want to cut down.') + '</span>';
+        li.innerHTML = '<span class="empty">' + (type === 'good' ? '🌱 Nothing yet. Tell Habit Gremlin something good you did today.' : '🫥 Nothing yet. Tell Habit Gremlin a habit you want to cut down.') + '</span>';
         ul.appendChild(li); return;
       }
       items.forEach(function (h) {
@@ -709,7 +713,7 @@ button { cursor: pointer; }
     $('ideas').innerHTML = '';
     ideas.forEach(function (t) { var b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.addEventListener('click', function () { handle(t); }); $('ideas').appendChild(b); });
     avatarPicker($('avatarPick2'), S.avatar, function (id) { S.avatar = id; save(); render(); bot('ooh, new look! 😍 suits you, ' + nick() + '!', 'cheer'); }, 'av2');
-    if (first || !S.chat.length) { bot('hiya ' + nm() + '! 👋 i am habitron, your lil habit buddy 🤖💜', 'cheer'); bot('so, what did you do today?', 'happy'); }
+    if (first || !S.chat.length) { bot('hiya ' + nm() + '! 👋 i am habit gremlin, your lil habit goblin 👹💜', 'cheer'); bot('so, what did you do today?', 'happy'); }
   }
   function boot() {
     $('welcomeBot').innerHTML = botSVG();
