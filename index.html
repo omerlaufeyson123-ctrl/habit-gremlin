@@ -1,0 +1,738 @@
+<title>Habitron</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* Layout concept: a pocket pet console. Chat with the bot on the left, your good and bad habit lists on the right, level ring on top. */
+:root {
+  --bg: #eceaff;
+  --surface: #ffffff;
+  --surface-2: #f4f2ff;
+  --ink: #26224d;
+  --ink-soft: #625e8e;
+  --line: #dcd8ff;
+  --accent: #6a55f5;
+  --accent-ink: #ffffff;
+  --good: #0c8a72;
+  --good-bg: #d9f6ee;
+  --bad: #d63d58;
+  --bad-bg: #ffe1e6;
+  --bot: #7e6bff;
+  --bot-face: #f6f3ff;
+  --bot-eye: #26224d;
+  --bubble-me: #6a55f5;
+  --bubble-me-ink: #ffffff;
+  --bubble-bot: #f1eeff;
+  --shadow: 0 6px 24px rgba(70, 50, 170, 0.12);
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14122b; --surface: #1e1c3f; --surface-2: #26244f; --ink: #ecebff; --ink-soft: #a6a3d6; --line: #38356b;
+    --accent: #9a8bff; --accent-ink: #14122b; --good: #4fe0c2; --good-bg: #14423b; --bad: #ff8499; --bad-bg: #4a1f2c;
+    --bot: #9a8bff; --bot-face: #1e1c3f; --bot-eye: #ecebff; --bubble-me: #9a8bff; --bubble-me-ink: #14122b;
+    --bubble-bot: #2c2a5c; --shadow: 0 6px 24px rgba(0, 0, 0, 0.35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14122b; --surface: #1e1c3f; --surface-2: #26244f; --ink: #ecebff; --ink-soft: #a6a3d6; --line: #38356b;
+  --accent: #9a8bff; --accent-ink: #14122b; --good: #4fe0c2; --good-bg: #14423b; --bad: #ff8499; --bad-bg: #4a1f2c;
+  --bot: #9a8bff; --bot-face: #1e1c3f; --bot-eye: #ecebff; --bubble-me: #9a8bff; --bubble-me-ink: #14122b;
+  --bubble-bot: #2c2a5c; --shadow: 0 6px 24px rgba(0, 0, 0, 0.35); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; text-wrap: balance; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* welcome */
+.welcome { background: var(--surface); border-radius: 28px; box-shadow: var(--shadow); padding: 28px 24px 30px; display: grid; gap: 18px; justify-items: center; text-align: center; max-width: 560px; margin: 24px auto 0; }
+.welcome .bot { width: 132px; height: 132px; }
+.welcome h1 { font-size: clamp(2rem, 7vw, 2.8rem); }
+.welcome p { margin: 0; color: var(--ink-soft); max-width: 40ch; }
+.welcome form { display: grid; gap: 14px; width: 100%; justify-items: center; }
+.field { display: grid; gap: 6px; width: 100%; max-width: 360px; text-align: left; font-weight: 800; font-size: 14px; }
+.field input { border: 2px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 12px 14px; font-weight: 600; width: 100%; }
+.avatars { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; border: 0; padding: 0; margin: 0; }
+.avatars legend { font-weight: 800; font-size: 14px; margin-bottom: 8px; padding: 0; width: 100%; text-align: center; }
+.avatars label { cursor: pointer; }
+.avatars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.av { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; border: 3px solid transparent; overflow: hidden; }
+.avatars input:checked + .av { border-color: var(--accent); box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--accent); }
+.avatars input:focus-visible + .av { outline: 3px solid var(--accent); outline-offset: 4px; }
+.btn { border: 0; border-radius: 999px; padding: 12px 24px; font-weight: 800; background: var(--accent); color: var(--accent-ink); font-size: 16px; }
+.btn:hover { filter: brightness(1.06); }
+.btn.ghost { background: var(--surface-2); color: var(--ink); border: 2px solid var(--line); padding: 8px 14px; font-size: 13px; }
+
+/* main */
+.hud { background: var(--surface); border-radius: 28px; box-shadow: var(--shadow); padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center; }
+.me { display: flex; align-items: center; gap: 14px; flex: 1 1 260px; min-width: 0; }
+.me .av { width: 64px; height: 64px; flex: none; }
+.me h2 { font-size: 1.5rem; overflow-wrap: anywhere; }
+.me .rank { color: var(--ink-soft); font-weight: 800; font-size: 14px; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.ringbox { position: relative; width: 92px; height: 92px; flex: none; }
+.ringbox svg { width: 92px; height: 92px; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--line); stroke-width: 9; }
+.ring-fg { fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.ring-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-family: var(--font-display); line-height: 1; }
+.ring-num b { font-size: 1.9rem; }
+.ring-num small { font-size: 11px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.1em; text-transform: uppercase; }
+.xpchip { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); font-weight: 800; font-size: 14px; padding: 3px 10px; border-radius: 999px; pointer-events: none; animation: floatup 1.3s ease-out forwards; }
+.xpchip.up { background: var(--good-bg); color: var(--good); }
+.xpchip.down { background: var(--bad-bg); color: var(--bad); }
+@keyframes floatup { from { opacity: 1; transform: translate(-50%, 6px); } to { opacity: 0; transform: translate(-50%, -26px); } }
+.ringbox.pop { animation: pop 0.5s ease; }
+@keyframes pop { 40% { transform: scale(1.14); } }
+.xpline { width: 100%; font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.6s ease; }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.chat { background: var(--surface); border-radius: 28px; box-shadow: var(--shadow); display: grid; grid-template-rows: auto 1fr auto auto; min-width: 0; overflow: hidden; }
+.chat-top { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--surface-2); border-bottom: 2px solid var(--line); }
+.chat-top .bot { width: 64px; height: 64px; flex: none; }
+.chat-top b { font-family: var(--font-display); font-size: 1.25rem; display: block; line-height: 1.1; }
+.chat-top span { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.log { padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; max-height: 440px; overflow-y: auto; }
+.msg { max-width: 86%; padding: 10px 14px; border-radius: 18px; overflow-wrap: anywhere; animation: in 0.2s ease-out; }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } }
+.msg.bot { align-self: flex-start; background: var(--bubble-bot); border-bottom-left-radius: 6px; }
+.msg.me { align-self: flex-end; background: var(--bubble-me); color: var(--bubble-me-ink); border-bottom-right-radius: 6px; font-weight: 600; }
+.msg > div:first-child { white-space: pre-line; }
+.msg .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.msg .actions input { flex: 1 1 100%; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 10px; font-weight: 600; min-width: 0; }
+.chipbtn { border: 2px solid var(--accent); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 14px; }
+.chipbtn:hover { background: var(--accent); color: var(--accent-ink); }
+.typing { align-self: flex-start; display: flex; gap: 5px; padding: 14px 16px; background: var(--bubble-bot); border-radius: 18px; border-bottom-left-radius: 6px; }
+.typing i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-soft); animation: dot 1s infinite ease-in-out; }
+.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dot { 50% { transform: translateY(-5px); opacity: 0.5; } }
+.ideas { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 16px 10px; }
+.ideas button { border: 2px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.ideas button:hover { border-color: var(--accent); color: var(--ink); }
+.chat form { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 2px solid var(--line); }
+.chat form input { flex: 1; min-width: 0; border: 2px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 11px 16px; font-weight: 600; }
+
+.side { display: grid; gap: 16px; min-width: 0; }
+.list { background: var(--surface); border-radius: 24px; box-shadow: var(--shadow); padding: 16px 16px 14px; }
+.list h3 { font-size: 1.25rem; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.list h3 em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 999px; font-family: var(--font-body); letter-spacing: 0.04em; }
+.list.good h3 em { background: var(--good-bg); color: var(--good); }
+.list.bad h3 em { background: var(--bad-bg); color: var(--bad); }
+.list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 12px; border-radius: 16px; background: var(--surface-2); border-left: 6px solid var(--line); }
+.list.good li { border-left-color: var(--good); }
+.list.bad li { border-left-color: var(--bad); }
+.list li .nm { flex: 1 1 140px; min-width: 0; font-weight: 800; overflow-wrap: anywhere; }
+.list li .ct { font-size: 12px; color: var(--ink-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mini { border: 2px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 800; }
+.list.good .mini.act { border-color: var(--good); color: var(--good); }
+.list.bad .mini.act { border-color: var(--bad); color: var(--bad); }
+.mini.x { padding: 4px 9px; color: var(--ink-soft); }
+.mini.tip { border-color: var(--accent); color: var(--accent); }
+.empty { margin: 0; color: var(--ink-soft); font-size: 14px; font-weight: 600; }
+.note { text-align: center; font-size: 13px; color: var(--ink-soft); margin: 4px 0 0; }
+
+/* bot head */
+.bot .eye { transform-origin: center; animation: blink 4.5s infinite; }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+.bot .mouth, .bot .cheerEyes { display: none; }
+.bot[data-mood="happy"] .m-happy, .bot[data-mood="sad"] .m-sad, .bot[data-mood="think"] .m-think, .bot[data-mood="cheer"] .m-cheer { display: inline; }
+.bot[data-mood="cheer"] .cheerEyes { display: inline; }
+.bot[data-mood="cheer"] .eye { display: none; }
+.bot .bulb { animation: glow 2.4s infinite ease-in-out; }
+@keyframes glow { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 820px) { .cols { grid-template-columns: minmax(0, 1fr); } .log { max-height: 380px; } .ideas { flex-wrap: nowrap; overflow-x: auto; } .ideas button { flex: none; } }
+</style>
+
+<div class="wrap">
+  <section class="welcome" id="welcome">
+    <div id="welcomeBot"></div>
+    <h1>Hi, welcome to Habitron! 🤖</h1>
+    <p>Your friendly lil bot that'll fix your habits 😊 Tell me what you did today and I'll figure out what's a good habit and what's a bad one. Jokes included.</p>
+    <form id="startForm">
+      <div class="field">
+        <label for="nameInput">What should I call you?</label>
+        <input id="nameInput" maxlength="18" placeholder="player" autocomplete="off">
+      </div>
+      <fieldset class="avatars" id="avatarPick"><legend>Pick your avatar</legend></fieldset>
+      <button class="btn" type="submit">Let's go</button>
+    </form>
+  </section>
+
+  <div id="main" hidden>
+    <section class="hud" aria-label="Your level">
+      <div class="me">
+        <div class="av" id="meAv"></div>
+        <div style="min-width:0">
+          <h2 id="meName">player</h2>
+          <div class="rank" id="meRank">Habit Egg</div>
+        </div>
+      </div>
+      <div class="tools">
+        <button class="btn ghost" type="button" id="avBtn">Change avatar</button>
+        <button class="btn ghost" type="button" id="resetBtn">Start over</button>
+      </div>
+      <div class="ringbox" id="ringbox" role="img" aria-label="Level">
+        <svg viewBox="0 0 92 92"><circle class="ring-bg" cx="46" cy="46" r="38"/><circle class="ring-fg" id="ringFg" cx="46" cy="46" r="38" stroke-dasharray="238.76" stroke-dashoffset="238.76"/></svg>
+        <div class="ring-num"><small>Level</small><b id="lvl">0</b></div>
+      </div>
+      <div class="xpline"><span id="xpText">0 / 100 xp to the next level</span><div class="bar"><i id="xpBar" style="width:0"></i></div></div>
+      <fieldset class="avatars" id="avatarPick2" hidden style="width:100%"><legend>Pick your avatar</legend></fieldset>
+    </section>
+
+    <div class="cols">
+      <section class="chat" aria-label="Chat with Habitron">
+        <div class="chat-top">
+          <div id="chatBot"></div>
+          <div><b>Habitron</b><span>always on your side 💜</span></div>
+        </div>
+        <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div class="ideas" id="ideas"></div>
+        <form id="chatForm">
+          <label class="sr" for="chatInput">Tell Habitron what you did today</label>
+          <input id="chatInput" autocomplete="off" placeholder="tell habitron what you did today...">
+          <button class="btn" type="submit">Send</button>
+        </form>
+      </section>
+
+      <div class="side">
+        <section class="list good" aria-label="Good habits">
+          <h3>Good habits <em id="gCount">0</em></h3>
+          <ul id="goodList"></ul>
+        </section>
+        <section class="list bad" aria-label="Bad habits">
+          <h3>Bad habits <em id="bCount">0</em></h3>
+          <ul id="badList"></ul>
+        </section>
+        <p class="note">Good habit: +15 xp. Slip on a bad one: −20 xp. Resist it: +10 xp. Every 100 xp is a level. Tap Tip on any habit for advice.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = 'habitron-v1';
+  var XP_GOOD = 15, XP_BAD = 20, XP_WIN = 10, PER = 100;
+  var TITLES = ['Noob 🥚', 'Recruit 🌱', 'Rookie 🎒', 'Scout 🧭', 'Soldier 🪖', 'Sergeant ⭐', 'Knight 🛡️', 'Warrior ⚔️', 'Commander 🎖️', 'Legend 👑'];
+  var S = null, pending = null, speaking = false, queue = [], moodT = 0;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- art ---------- */
+  var DARK = '#26224d';
+  var AV = {
+    cat: { bg: '#ffe3c2', svg: '<polygon points="14,28 17,6 32,18" fill="#ffb86b"/><polygon points="50,28 47,6 32,18" fill="#ffb86b"/><circle cx="32" cy="38" r="20" fill="#ffb86b"/><circle cx="25" cy="35" r="2.6" fill="' + DARK + '"/><circle cx="39" cy="35" r="2.6" fill="' + DARK + '"/><polygon points="29,41 35,41 32,45" fill="#ff7a93"/><path d="M26 47 Q32 51 38 47" fill="none" stroke="' + DARK + '" stroke-width="1.6" stroke-linecap="round"/>' },
+    fox: { bg: '#ffd9c2', svg: '<polygon points="12,30 14,6 32,18" fill="#ff8a4c"/><polygon points="52,30 50,6 32,18" fill="#ff8a4c"/><circle cx="32" cy="38" r="20" fill="#ff8a4c"/><polygon points="12,38 32,57 32,42" fill="#fff6ee"/><polygon points="52,38 32,57 32,42" fill="#fff6ee"/><circle cx="24" cy="35" r="2.6" fill="' + DARK + '"/><circle cx="40" cy="35" r="2.6" fill="' + DARK + '"/><circle cx="32" cy="52" r="2.8" fill="' + DARK + '"/>' },
+    frog: { bg: '#d4f6e0', svg: '<circle cx="32" cy="40" r="21" fill="#5fd08a"/><circle cx="21" cy="22" r="9" fill="#5fd08a"/><circle cx="43" cy="22" r="9" fill="#5fd08a"/><circle cx="21" cy="22" r="5.5" fill="#fff"/><circle cx="43" cy="22" r="5.5" fill="#fff"/><circle cx="21" cy="22" r="2.8" fill="' + DARK + '"/><circle cx="43" cy="22" r="2.8" fill="' + DARK + '"/><path d="M20 44 Q32 54 44 44" fill="none" stroke="' + DARK + '" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="40" r="3.5" fill="#ff9fb3" opacity="0.7"/><circle cx="47" cy="40" r="3.5" fill="#ff9fb3" opacity="0.7"/>' },
+    bunny: { bg: '#e0dcff', svg: '<ellipse cx="22" cy="17" rx="7" ry="16" fill="#f7f3ff"/><ellipse cx="42" cy="17" rx="7" ry="16" fill="#f7f3ff"/><ellipse cx="22" cy="18" rx="3.4" ry="11" fill="#ffb3c8"/><ellipse cx="42" cy="18" rx="3.4" ry="11" fill="#ffb3c8"/><circle cx="32" cy="41" r="20" fill="#f7f3ff"/><circle cx="25" cy="39" r="2.6" fill="' + DARK + '"/><circle cx="39" cy="39" r="2.6" fill="' + DARK + '"/><polygon points="29,45 35,45 32,48" fill="#ff7a93"/>' },
+    ghost: { bg: '#8b83ff', svg: '<path d="M12 56 V30 a20 20 0 0 1 40 0 V56 l-6.7 -5 -6.7 5 -6.6 -5 -6.7 5 -6.6 -5 z" fill="#f6f4ff"/><ellipse cx="25" cy="32" rx="3" ry="4.4" fill="' + DARK + '"/><ellipse cx="39" cy="32" rx="3" ry="4.4" fill="' + DARK + '"/><ellipse cx="32" cy="42" rx="3.4" ry="4" fill="' + DARK + '"/>' },
+    bear: { bg: '#ffd5dc', svg: '<circle cx="15" cy="20" r="8.5" fill="#b57b55"/><circle cx="49" cy="20" r="8.5" fill="#b57b55"/><circle cx="15" cy="20" r="4" fill="#e9b894"/><circle cx="49" cy="20" r="4" fill="#e9b894"/><circle cx="32" cy="38" r="22" fill="#b57b55"/><ellipse cx="32" cy="46" rx="10" ry="8" fill="#e9b894"/><circle cx="24" cy="34" r="2.6" fill="' + DARK + '"/><circle cx="40" cy="34" r="2.6" fill="' + DARK + '"/><ellipse cx="32" cy="43" rx="3.4" ry="2.4" fill="' + DARK + '"/>' }
+  };
+  var AV_IDS = Object.keys(AV);
+  function avatarSVG(id, size) {
+    var a = AV[id] || AV.cat;
+    return '<svg viewBox="0 0 64 64" width="' + size + '" height="' + size + '" aria-hidden="true"><rect width="64" height="64" fill="' + a.bg + '"/>' + a.svg + '</svg>';
+  }
+  function botSVG() {
+    return '<svg class="bot" data-mood="happy" viewBox="0 0 120 120" aria-hidden="true">' +
+      '<line x1="60" y1="26" x2="60" y2="14" stroke="var(--bot)" stroke-width="5" stroke-linecap="round"/><circle class="bulb" cx="60" cy="10" r="6" fill="var(--accent)"/>' +
+      '<rect x="8" y="52" width="12" height="22" rx="6" fill="var(--bot)"/><rect x="100" y="52" width="12" height="22" rx="6" fill="var(--bot)"/>' +
+      '<rect x="16" y="26" width="88" height="72" rx="28" fill="var(--bot)"/><rect x="27" y="38" width="66" height="48" rx="20" fill="var(--bot-face)"/>' +
+      '<ellipse class="eye" cx="46" cy="58" rx="6" ry="8" fill="var(--bot-eye)"/><ellipse class="eye" cx="74" cy="58" rx="6" ry="8" fill="var(--bot-eye)"/>' +
+      '<g class="cheerEyes" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"><path d="M39 62 Q46 50 53 62"/><path d="M67 62 Q74 50 81 62"/></g>' +
+      '<circle cx="36" cy="72" r="5" fill="#ff8fb1" opacity="0.6"/><circle cx="84" cy="72" r="5" fill="#ff8fb1" opacity="0.6"/>' +
+      '<path class="mouth m-happy" d="M51 70 Q60 80 69 70" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="mouth m-sad" d="M52 78 Q60 69 68 78" fill="none" stroke="var(--bot-eye)" stroke-width="4" stroke-linecap="round"/>' +
+      '<circle class="mouth m-think" cx="60" cy="74" r="3.6" fill="var(--bot-eye)"/>' +
+      '<path class="mouth m-cheer" d="M49 68 Q60 90 71 68 Z" fill="var(--bot-eye)"/></svg>';
+  }
+  function setMood(m) {
+    document.querySelectorAll('.bot').forEach(function (b) { b.setAttribute('data-mood', m); });
+    clearTimeout(moodT);
+    if (m !== 'happy') moodT = setTimeout(function () { setMood('happy'); }, 2600);
+  }
+
+  /* ---------- state ---------- */
+  function load() { try { var r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+  function save() { try { if (S) { S.chat = S.chat.slice(-50); localStorage.setItem(KEY, JSON.stringify(S)); } } catch (e) {} }
+  function lvlOf(xp) { return Math.floor(xp / PER); }
+  function titleOf(l) { return TITLES[Math.min(l, TITLES.length - 1)]; }
+  function uid() { return Math.random().toString(36).slice(2, 9); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function nm() { return S ? S.name : 'player'; }
+
+  /* ---------- habit knowledge ---------- */
+  var CATS = [
+    { key: 'adult', type: 'bad', name: 'Adult content', emoji: '🙈', re: /(\bwatch(ed|ing)?\s+(corn|porn)\b|\bporn\w*|\bnsfw\b)/i,
+      jokes: ['2 hours??? 😨😨😨😨 hehe joking, all habits are the same no matter how scary they may sound, champ 😊', 'no judgement here, warrior 🙈 a habit is a habit, so let us track it and work on it together 💪'] },
+    { key: 'scroll', type: 'bad', name: 'Too much scrolling', emoji: '📱', re: /\b(insta\w*|tiktok|reels?|doom ?scroll\w*|scroll\w*|social media|facebook|twitter|youtube shorts)\b/i,
+      jokes: ['doomscrolling? happens to the best of us, soldier 📱😅', 'your thumb is getting more cardio than your legs 👍😂 no judgement, warrior', 'the feed has no end boss, champ 😵‍💫 you have to leave on your own!'] },
+    { key: 'junk', type: 'bad', name: 'Junk food', emoji: '🍕', re: /\b(junk food|fast food|burgers?|pizza|soda|fizzy|coke|pepsi|chips|candy|sweets|sugar\w*|chocolate|fries|ice ?cream|snack\w*|overate|binge\w*)\b/i,
+      jokes: ['ah, the forbidden snack dimension 🍕😋 respect the craving, champ', 'the pizza called. it says it is proud of you 😂🍕 now go eat a salad, soldier', 'sugar is a cheap power-up with a nasty crash after 🍬😵 careful, player'] },
+    { key: 'late', type: 'bad', name: 'Staying up late', emoji: '🌙', re: /(stayed up|up late|slept late|sleep late|all.?nighter|late night|woke up late|overslept|slept in)/i,
+      jokes: ['sleep is the cheapest power-up in the game 😴🎮 you skipped the free heal, player', 'night owl mode again? 🦉 your pillow is lonely, soldier', 'you at 3 a.m. and you at 8 a.m. are two different people 😵 and they hate each other, champ'] },
+    { key: 'skip', type: 'bad', name: 'Skipping workouts', emoji: '🛋️', noResist: true, re: /((skipped|missed|skip)\s+(the |my |a )?(gym|workout|exercise|run|walk))|(didn'?t (work ?out|exercise|go to the gym))|\blazy\b|lazed|stayed in bed/i,
+      jokes: ['the gym misses you 🏋️💔 it is not mad, just disappointed 🥺', 'rest day or lazy day? 🤨 be honest, soldier... okay it was lazy 😂', 'your couch gives zero XP, champ 🛋️😅'] },
+    { key: 'procr', type: 'bad', name: 'Procrastinating', emoji: '⏳', re: /(procrastinat\w*|put (it )?off|postponed|avoided (work|studying|my tasks))/i,
+      jokes: ['procrastinating? tomorrow-you is going to be SO mad at today-you 😬⏳', 'you will do it later, right? ...right? 👀😂 the deadline is coming, soldier'] },
+    { key: 'smoke', type: 'bad', name: 'Smoking', emoji: '🚬', re: /(smok\w*|cigarettes?|vap(e|ed|ing))/i,
+      jokes: ['your lungs just filed a complaint 🫁🥺 no judgement, champ, but let us level this one down 💪', 'every cigarette is a tiny HP drain, player 🤕 let us stop the damage together'] },
+    { key: 'nails', type: 'bad', name: 'Nail biting', emoji: '💅', re: /((bit|bite|biting|chewed) (my )?nails?)|nail.?biting/i,
+      jokes: ['i bet they taste good, but that is not good for you or your nails, champ 💅😋', 'nails: 10, hands: 0 🤕 let us give them a break, soldier'] },
+    { key: 'spend', type: 'bad', name: 'Impulse spending', emoji: '💸', re: /(overspent|impulse (buy|bought|shopp\w*)|wasted money|spent too much (money|cash)|splurg\w*)/i,
+      jokes: ['your wallet just whispered “please stop” 💸😭', 'impulse buys are sneaky little goblins, soldier 👹💰 they steal your gold when you are not looking'] },
+    { key: 'gaming', type: 'bad', name: 'Too much gaming', emoji: '🎮', re: /((too much|hours?|all (day|night)|couldn'?t stop)[^.]*\b(gam(e|es|ing)|play(ed|ing))\b)|(\b(gam(e|es|ing)|play(ed|ing))\b[^.]*(too much|for hours|all day|all night))/i,
+      jokes: ['are you winning, son? 🎮😂 okay jokes aside, this is not really a bad habit unless it is conflicting with your daily goals 😊', 'one more match... and suddenly it is 4 a.m. 😵🎮 classic, player. jokes aside, as long as your real quests get done you are fine 😊'] },
+    { key: 'workout', type: 'good', name: 'Working out', emoji: '💪', re: /\b(work(ed)? ?out|gym|exercis\w*|ran|run|jog\w*|push.?ups?|lifted|cardio|swam)\b/i,
+      praise: ['gym time?! 💪🔥 you are gaining XP in real life, soldier!', 'sweat is just your fat crying 😂💦 great work, warrior!'] },
+    { key: 'walk', type: 'good', name: 'Walking', emoji: '🚶', re: /\b(walk(ed|ing)?|stroll\w*)\b/i,
+      praise: ['walking counts! 🚶👟 side quest complete, player 🎉', 'you walked? 😮 your legs say thank you, champ!'] },
+    { key: 'read', type: 'good', name: 'Reading', emoji: '📚', re: /\b(read|reading|book|chapter|pages?)\b/i,
+      praise: ['reading?! 📚🧠 +10 intelligence, player!', 'books are just long tutorials for life 📖😎 nice, champ!'] },
+    { key: 'water', type: 'good', name: 'Drinking water', emoji: '💧', re: /\b(water|hydrat\w*)\b/i,
+      praise: ['hydration check passed 💧😎 your cells say thank you, champ', 'water! 🚰 the cheapest health potion in the game, soldier'] },
+    { key: 'sleep', type: 'good', name: 'Sleeping on time', emoji: '😴', re: /(slept early|early (to )?bed|went to bed early|slept on time|8 hours|enough sleep)/i,
+      praise: ['sleeping early?? 😴✨ that is a rare legendary drop! respect, warrior', 'full-HP sleep unlocked 🛌💤 well done, soldier!'] },
+    { key: 'mind', type: 'good', name: 'Mindful moments', emoji: '🧘', re: /\b(meditat\w*|journal\w*|breathing exercises?)\b/i,
+      praise: ['mindful moment 🧘✨ inner peace unlocked, champ', 'calm mind, strong mind 😌 nice one, warrior'] },
+    { key: 'study', type: 'good', name: 'Studying', emoji: '🧠', re: /\b(studied|studying|study|learn\w*|course|homework|practi[sc]ed?)\b/i,
+      praise: ['studying? 🧠📖 big brain energy, player!', 'leveling up your brain 🤓 love it, soldier!'] },
+    { key: 'art', type: 'good', name: 'Making art', emoji: '🎨', re: /\b(sculpt\w*|zbrush|blender|draw\w*|drew|paint\w*|model(l)?ed|render\w*|art)\b/i,
+      praise: ['creating art 🎨🔥 the world needs more of your stuff, warrior!', 'artist mode: ON 😎✨ keep creating, champ!'] },
+    { key: 'clean', type: 'good', name: 'Tidying up', emoji: '🧹', re: /\b(clean\w*|tidy\w*|laundry|dishes|organi[sz]ed)\b/i,
+      praise: ['a tidy room is a tidy mind 🧹✨ nice, soldier!', 'cleaning?! 🫧 you just cleared a whole dungeon, player!'] },
+    { key: 'cook', type: 'good', name: 'Cooking at home', emoji: '🍳', re: /\b(cooked|home.?cooked|healthy meal|salad)\b/i,
+      praise: ['home cooking 🍳😋 chef mode: ON, champ!', 'you cooked?! 👨‍🍳 five stars, warrior ⭐'] },
+    { key: 'stretch', type: 'good', name: 'Stretching', emoji: '🤸', re: /\b(stretch\w*|yoga)\b/i,
+      praise: ['stretching 🤸 your back says thank you 🙏', 'flexibility +1 😎 nice, soldier!'] }
+  ];
+  var NEG = /\b(didn'?t|did not|haven'?t|never|couldn'?t|forgot (to|about)|skipped|missed|not)\b/i;
+  var RESIST = /\b(resisted|avoided|stayed off|stopped|quit|didn'?t|did not|without|held off|haven'?t|skipped|no|not|cut (down|back)|gave up|passed on)\b/i;
+
+  /* ---------- emoji budget: at most one emoji (or one repeated run) per bot message ---------- */
+  var EMO = /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/gu;
+  function stripEmoji(t) { return t.replace(EMO, '').replace(/\s{2,}/g, ' ').replace(/\s+([!?.,:])/g, '$1').trim(); }
+  function limitEmoji(t) {
+    var keep = null, out = '', last = 0, m;
+    EMO.lastIndex = 0;
+    while ((m = EMO.exec(t))) {
+      if (keep === null) { keep = m[0]; out += t.slice(last, m.index) + m[0]; last = m.index + m[0].length; }
+      else if (m[0] === keep && t.slice(last, m.index).trim() === '') { out += t.slice(last, m.index) + m[0]; last = m.index + m[0].length; }
+      else { out += t.slice(last, m.index); last = m.index + m[0].length; }
+    }
+    return (out + t.slice(last)).replace(/ {2,}/g, ' ').replace(/ +([!?.,:])/g, '$1').replace(/ +\n/g, '\n').trim();
+  }
+
+  /* ---------- chat ---------- */
+  function appendMsg(who, text, actions, noSave) {
+    var log = $('log'), d = document.createElement('div');
+    d.className = 'msg ' + who;
+    var p = document.createElement('div'); p.textContent = text; d.appendChild(p);
+    if (actions && actions.length) {
+      var box = document.createElement('div'); box.className = 'actions';
+      var inp = null;
+      if (actions.input) { inp = document.createElement('input'); inp.value = actions.input; inp.setAttribute('aria-label', 'Habit name'); inp.maxLength = 40; box.appendChild(inp); }
+      actions.forEach(function (a) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chipbtn'; b.textContent = stripEmoji(a.label);
+        b.addEventListener('click', function () { box.remove(); a.fn(inp ? inp.value : ''); });
+        box.appendChild(b);
+      });
+      d.appendChild(box);
+    }
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+    if (!noSave) { S.chat.push({ who: who, text: text }); save(); }
+  }
+  function bot(text, mood, actions) { text = limitEmoji(text); queue.push({ text: text, mood: mood || 'happy', actions: actions }); pump(); }
+  function pump() {
+    if (speaking || !queue.length) return;
+    speaking = true;
+    var m = queue.shift(), log = $('log');
+    setMood('think');
+    var t = document.createElement('div'); t.className = 'typing'; t.innerHTML = '<i></i><i></i><i></i>';
+    log.appendChild(t); log.scrollTop = log.scrollHeight;
+    setTimeout(function () {
+      t.remove(); setMood(m.mood); appendMsg('bot', m.text, m.actions);
+      speaking = false; pump();
+    }, Math.min(850, 300 + m.text.length * 6));
+  }
+  function clearActions() { document.querySelectorAll('#log .actions').forEach(function (e) { e.remove(); }); }
+
+  /* ---------- xp ---------- */
+  var NICKS = ['soldier', 'player', 'warrior', 'champ', 'hero', 'rookie', 'commander'];
+  function nick() { return pick(NICKS); }
+  function who() { return Math.random() < 0.35 && S ? S.name : nick(); }
+  function changeXP(delta) {
+    var oldXP = S.xp, oldL = lvlOf(oldXP);
+    S.xp = Math.max(0, S.xp + delta);
+    var newL = lvlOf(S.xp);
+    save(); render(delta);
+    if (newL > oldL) bot('LEVEL UP!! 🎉🎉 you are level ' + newL + ' now: ' + titleOf(newL) + '! so proud of you, ' + who() + ' 🥹💜', 'cheer');
+    else if (newL < oldL) bot('oh no, your level dropped to ' + newL + ' (' + titleOf(newL) + ') 🤕 it happens, ' + who() + '! the next good habit starts the climb again 💪', 'sad');
+    else if (delta < 0 && oldXP === 0 && !S.zeroTold) { S.zeroTold = true; save(); bot('you are already at level 0, so there is nowhere to fall 😂 only up from here, ' + who() + ' 🚀', 'happy'); }
+  }
+  function findHabit(key) { return S.habits.filter(function (h) { return h.key === key; })[0]; }
+  function addHabit(name, type, key) { var h = { id: uid(), name: name, type: type, count: 0, key: key || ('u' + uid()) }; S.habits.push(h); save(); return h; }
+  function catByKey(k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].key === k) return CATS[i]; return null; }
+  function emojiOf(h) { var c = catByKey(h.key); return c ? c.emoji : (h.type === 'good' ? '🌟' : '😬'); }
+  var GEN_GOOD = [
+    function (n) { return '“' + n + '” done! side quest complete 🎉'; },
+    function (n) { return 'nice, “' + n + '” counted 😎 keep stacking those wins, ' + nick() + '!'; },
+    function (n) { return '“' + n + '” again?! 🥹 habitron is so proud of you, ' + nick(); }
+  ];
+  var GEN_BAD = [
+    function (n) { return 'oof, “' + n + '” happened 😅 we all slip, ' + nick() + '. tomorrow is a new run!'; },
+    function (n) { return 'noted: “' + n + '” 📝 habitron believes in you anyway, ' + nick() + ' 💜'; },
+    function (n) { return 'aww, “' + n + '” again 🥺 at least you were honest, and honesty is worth XP in my book'; }
+  ];
+  var GEN_WIN = [
+    function (n) { return 'you resisted “' + n + '”?! 😳🔥 that is boss-level willpower, ' + nick() + '!'; },
+    function (n) { return 'resisted “' + n + '”! 🛡️ habitron is doing a little victory dance 💃'; }
+  ];
+  var TIPS = {"scroll": ["set a 30-minute daily limit in your phone settings ⏱️", "move social apps off your home screen so they take 3 taps to open 📲", "your phone sleeps outside the bedroom at night 🛏️", "turn off notifications for social apps, so you open them on purpose 🔕"], "junk": ["keep a healthy snack within reach (fruit, nuts), so junk is not the easy option 🍎", "drink a glass of water first, sometimes thirst pretends to be hunger 💧", "never shop hungry, or you will buy the whole snack aisle 🛒"], "late": ["set a \"bedtime\" alarm 30 minutes before you want to sleep ⏰", "no screens for the last 20 minutes in bed, try a book or music 📖", "wake up at the same time every day, even weekends, to reset your body clock ☀️"], "skip": ["lay out your gym clothes the night before 👟", "start tiny: 10 minutes counts, and you can always do more 🕙", "make a playlist you only play during workouts 🎧"], "procr": ["break the task into one tiny first step and do only that 🪜", "try 25 minutes of focus, then a 5-minute break (the pomodoro trick) 🍅", "put your phone in another room while you work 📵"], "smoke": ["notice your triggers (coffee, stress, boredom) and plan a swap for each ☕", "when a craving hits, wait 10 minutes, cravings usually pass 🕙", "a doctor or a quit-smoking helpline can give you real support and options 🩺"], "nails": ["keep your nails short and filed, so there is less to bite ✂️", "give your hands a job: a stress ball or a fidget toy 🧸", "notice when it happens (bored? stressed?) and swap in something else 👀"], "spend": ["wait 48 hours before any non-essential buy 🛍️", "unsubscribe from store emails and turn off shopping notifications 📭", "set a small weekly \"fun money\" budget and stick to it 💰"], "adult": ["keep your phone out of the bedroom at night 📵", "use a content blocker app or browser setting to add some friction 🛡️", "notice your trigger times and plan something else for them: a walk, a call, a game 🎮"], "gaming": ["decide your play time before you start and set a timer ⏲️", "finish your real-life daily quests first, then game as the reward 🏆", "stop at the end of a match, never on \"just one more\" 😅"], "workout": ["schedule it like a meeting, same time every day 📅", "track your lifts or runs so you can see your progress 📈", "find a gym buddy, it is harder to skip when someone is waiting 🤝"], "walk": ["take a short walk after meals, it helps digestion too 🍽️", "take phone calls while walking 📞", "try a 10-minute walk outside every morning 🌅"], "read": ["keep a book by your bed and read 5 pages before sleep 📖", "audiobooks count too 🎧", "carry a book or e-reader so waiting time becomes reading time 🚌"], "water": ["keep a bottle on your desk and refill it every time it is empty 🚰", "drink a glass with every meal 🍽️", "add lemon or mint if plain water feels boring 🍋"], "sleep": ["dim the lights an hour before bed 💡", "keep your room cool and dark 🌙", "avoid caffeine after the afternoon ☕"], "mind": ["start with just 2 minutes a day 🧘", "write 3 things you are grateful for before bed ✍️", "take 5 slow breaths whenever you feel stressed 🌬️"], "study": ["study in short, focused blocks with breaks 🍅", "teach what you learned to someone (or to Habitron) 🧠", "review your notes the next day so it sticks 🔁"], "art": ["set a small daily art goal, even 20 minutes counts 🎨", "post your progress online, people cheering you on helps 📸", "keep a quick warm-up sketch routine before big projects ✏️"], "clean": ["do a 10-minute tidy every evening 🧹", "clean as you go while cooking 🍳", "put things back right after you use them 📦"], "cook": ["plan your meals for the week on one day 📝", "cook double and save leftovers for tomorrow 🥡", "keep a few easy recipes you can make without thinking 🍲"], "stretch": ["stretch for 5 minutes right after waking up 🌅", "stretch between long gaming or work sessions 🎮", "pair stretching with a show or a song so it feels shorter 🎶"]};
+  var GEN_TIP_BAD = ["notice what triggers it (time, place, mood) and plan a swap 👀", "make it harder to do: add one extra step between you and the habit 🧱", "keep logging it honestly here, noticing it is step one 📝"], GEN_TIP_GOOD = ["attach it to something you already do every day 🔗", "start small and grow it slowly 🌱", "do it at the same time each day so it becomes automatic ⏰"];
+  var MORE = [
+    {key:"caffeine", type:"bad", name:"Too much caffeine", emoji:"☕", re:new RegExp("(too (much|many)|so (much|many)|lots of|(\\d+|two|three|four|five|six|seven) (cups?|cans?|shots?|mugs?)( of)?)\\s+(coffee|caffeine|energy drinks?|red bull|monster|espresso|chai|tea)|(coffee|caffeine|energy drinks?|red bull|monster|espresso)\\b.*\\b(too much|all day|jittery|again)|\\bjittery\\b|\\bno (coffee|caffeine|energy drinks?)\\b|(skipped|cut (down|back) on|quit|gave up) (my )?(coffee|caffeine|energy drinks?)","i"), lines:["coffee is just a loan from tomorrow-you ☕ the interest is brutal, champ", "your heart rate just said “bro, chill” 🫀 slow down, soldier"], tips:["stop caffeine by early afternoon so sleep stays safe ☕", "swap every second cup for water or herbal tea", "ask yourself: am i thirsty, bored or actually tired?"]},
+    {key:"snooze", type:"bad", name:"Hitting snooze", emoji:"⏰", re:new RegExp("\\bsnooz\\w*|slept through (my |the )?alarm|ignored (my |the )?alarm|turned off (my |the )?alarm","i"), lines:["snooze is just a tiny lie you tell yourself ⏰ nine times, warrior", "the alarm is the boss fight and you keep hitting “run away” 😂"], tips:["put the alarm across the room so you have to stand up ⏰", "go to bed 15 minutes earlier for a week", "open the curtains right away, light wakes you faster ☀️"]},
+    {key:"meals", type:"bad", name:"Skipping meals", emoji:"🥣", re:new RegExp("\\b(skipped|skip|missed)\\s+(my\\s+|a\\s+)?(breakfast|lunch|dinner|meals?)\\b|\\b(didn'?t|did not)\\s+eat\\s+(breakfast|lunch|dinner|all day|anything)\\b|\\bforgot to eat\\b","i"), lines:["your stomach is sending notifications and you keep swiping them away 🥣", "no judgement, champ 💜 your body is a game character that needs fuel too"], tips:["keep an easy backup (banana, nuts, a sandwich) for busy days 🍌", "set a meal reminder on your phone", "if you often can't eat, a doctor can help"], noResist:true, penalty:10},
+    {key:"nightsnack", type:"bad", name:"Late-night snacking", emoji:"🌙", re:new RegExp("\\b(midnight snack|late.?night (snack\\w*|food|eating)|ate (at )?(1|2|3|4) ?am|raided the (fridge|kitchen)|(snacked|ate) (after midnight|at night|in bed))\\b","i"), lines:["the fridge light at 2 a.m. is the real horror movie 🌙", "midnight snacks taste better, it is science (not really) 😂 careful, soldier"], tips:["decide on one proper evening snack, then close the kitchen 🌙", "brush your teeth right after dinner, you will hate to eat again", "keep a glass of water by your bed instead"], front:true},
+    {key:"binge", type:"bad", name:"Binge-watching", emoji:"📺", re:new RegExp("\\b(binge.?watch\\w*|binged|watched (an? )?(entire|whole|full|all) (season|series|show)|one more episode|(watched|watching) (tv|youtube|anime|series|shows?|netflix|movies?) (for )?(hours|all day|all night)|marathon(ed)?)\\b","i"), lines:["“just one more episode” said every sunrise ever 📺", "the autoplay button is undefeated, player 😂"], tips:["turn off autoplay in your streaming app ⏹️", "pick a stopping time before you press play", "watch somewhere you can't fall asleep, like a chair"], front:true},
+    {key:"knuckles", type:"bad", name:"Cracking knuckles", emoji:"🤞", re:new RegExp("\\bcrack\\w* (my |the )?(knuckles|fingers|neck|back|joints?)\\b","i"), lines:["crack, crack... the sound effects are on point, warrior 🤞", "your knuckles are not an ASMR channel, champ 🎧"], tips:["notice when you do it (stress? boredom?) and write it down", "give your hands a job: a stress ball or fidget toy 🧸", "stretch your fingers gently instead"]},
+    {key:"oral", type:"bad", name:"Chewing ice or pens", emoji:"🧊", re:new RegExp("\\b(chew\\w* (on )?(ice|pens?|pencils?|straws?|my cheeks?|my lips?)|bit(e|ing)? (my )?(lips?|cheeks?|pens?|pencils?)|bit the pen)\\b","i"), lines:["your pen has teeth marks, it has seen things 🖊️", "ice is not a snack, soldier 🧊 but we respect the crunch"], tips:["swap in sugar-free gum or crunchy veggies 🥕", "keep a water bottle with a straw nearby", "a constant craving for ice can be worth a check-up with a doctor"]},
+    {key:"skinpick", type:"bad", name:"Skin picking", emoji:"🩹", re:new RegExp("\\b(pick(ed|ing)? (at )?(my )?(skin|scabs?|pimples?|zits?|face)|skin.?picking|popped (my )?(pimples?|zits?))\\b","i"), lines:["no judgement, soldier 💜 this one is very common and very human", "thanks for telling me, champ 🩹 we will be gentle about this"], tips:["keep nails short and cover mirrors where picking happens 🪞", "give your hands another job: a fidget toy or squeezing a ball", "if it hurts or takes over your day, a doctor can help"], penalty:5},
+    {key:"hairpull", type:"bad", name:"Hair pulling", emoji:"🧵", re:new RegExp("\\b(pull(ed|ing)? (out )?(my )?hair|hair.?pulling|trichotillomania)\\b","i"), lines:["thanks for being honest, warrior 💜 no shame here", "you are not alone in this, champ 🫂"], tips:["keep your hands busy: a fidget toy or a soft cloth", "a doctor or therapist can help, there are proven treatments", "notice when it happens (stress? screens?) and write it down"], penalty:5},
+    {key:"grind", type:"bad", name:"Teeth grinding", emoji:"😬", re:new RegExp("\\b(grind(ing|ed)?|clench(ed|ing)?) (my )?(teeth|jaw)\\b|\\bbruxism\\b","i"), lines:["your teeth are not a blender, soldier 😬", "jaw clenching is stress with extra steps, champ"], tips:["relax your jaw: lips together, teeth apart 😌", "a dentist can fit a night guard if you grind in your sleep 🦷", "cut caffeine in the evening"]},
+    {key:"posture", type:"bad", name:"Slouching or sitting too long", emoji:"🪑", re:new RegExp("\\b(slouch\\w*|bad posture|hunched|hunching|sat (all day|for hours|too long)|sitting (all day|for hours|too long)|sedentary|didn'?t (move|stand up) (all day|for hours))\\b","i"), lines:["your spine looks like a question mark, champ 🪑", "chair mode: unlocked, legs: asleep, soldier 😂"], tips:["stand up and stretch every 30 to 45 minutes ⏱️", "raise your screen to eye level 🖥️", "try a short walk after each meal"], noResist:true},
+    {key:"teeth", type:"bad", name:"Skipping brushing", emoji:"🦷", re:new RegExp("\\b(skipped|forgot|missed|didn'?t|did not)\\s+(to\\s+)?(brush|floss|brushing|flossing)\\b","i"), lines:["your teeth are filing a complaint, soldier 🦷", "the plaque is leveling up while you sleep 😬"], tips:["keep the toothbrush where you will see it 🪥", "brush right after dinner so you don't forget", "pair it with something you always do, like washing your face"], noResist:true},
+    {key:"shower", type:"bad", name:"Skipping a shower", emoji:"🚿", re:new RegExp("\\b(skipped|skip|forgot|missed|didn'?t|did not)\\s+(to\\s+|my\\s+|a\\s+)?(shower|bath|showering)\\b","i"), lines:["your nose called, it wants a refund, champ 🚿", "hygiene is the first side quest, soldier 😂"], tips:["shower at the same time every day, like right after waking 🚿", "lay out clean clothes before you start", "a quick 3-minute rinse is better than none"], noResist:true},
+    {key:"gossip", type:"bad", name:"Gossiping", emoji:"🗣️", re:new RegExp("\\b(gossip\\w*|talked (behind|about) (someone|people|my \\w+)|trash.?talk\\w*|badmouth\\w*|spread rumou?rs?)\\b","i"), lines:["the tea is hot but it burns, champ 🍵", "gossip is a free side quest with bad loot, soldier 😂"], tips:["change the subject to something positive", "ask yourself: would i say this to their face?", "say something kind about the person instead"]},
+    {key:"interrupt", type:"bad", name:"Interrupting people", emoji:"🙊", re:new RegExp("\\b(interrupt\\w*|talked over (people|someone|him|her|them)|didn'?t let (him|her|them|people) (talk|speak|finish))\\b","i"), lines:["wait for your turn in the dialogue, player 🙊", "let them finish the cutscene, warrior 😂"], tips:["count to two before replying", "write your thought down if you are scared to forget it ✍️", "ask a follow-up question instead of jumping in"], noResist:true},
+    {key:"lateness", type:"bad", name:"Being late", emoji:"🏃", re:new RegExp("\\b(was|am|got|arrived|came|showed up|turned up|ran) (running )?late\\b|late (for|to) (work|class|school|a meeting|the meeting|an appointment|office|college)|missed (my |the )?(bus|train|flight|deadline)","i"), lines:["fashionably late is still late, soldier ⏰", "time is the one resource you can't respawn, champ 😂"], tips:["plan to arrive 10 minutes early, aim for on time 🕙", "prep your bag and clothes the night before 🎒", "set a leave-the-house alarm, not just a wake-up alarm"]},
+    {key:"swearing", type:"bad", name:"Cursing a lot", emoji:"🤬", re:new RegExp("\\b(swore|swearing|cursed|cursing|dropped (an? )?f.?bombs?|said (a lot of )?bad words|potty mouth)\\b","i"), lines:["bleep bleep bleep 🤬 rated M for Mature, warrior", "did your mom hear that, champ? 😂"], tips:["swap swear words with silly ones (“sugar honey iced tea!”) 🍬", "take a deep breath before reacting", "notice what sets it off and plan a calmer response"]},
+    {key:"overthink", type:"bad", name:"Overthinking", emoji:"🌀", re:new RegExp("\\b(overthink\\w*|over.?analy[sz]\\w*|couldn'?t stop thinking|ruminat\\w*|spiral(l)?ed|replay(ed|ing) (it|that|the conversation|everything))\\b","i"), lines:["your brain opened 47 tabs again, soldier 🌀", "overthinking is just worrying on hard mode, champ"], tips:["write the thought down, then ask “what can i actually do about it today?” ✍️", "set a 10-minute worry time, then move on", "take a walk, movement calms racing thoughts 🚶"]},
+    {key:"selftalk", type:"bad", name:"Negative self-talk", emoji:"💬", re:new RegExp("\\b(called myself (stupid|dumb|useless|ugly|a failure|an idiot)|hated (on )?myself|negative self.?talk|put myself down|beat myself up|i'?m (so |such a |such an )?(stupid|useless|dumb|worthless|idiot|failure))\\b","i"), lines:["hey, be kind to my favorite player 💜 you are doing better than you think", "would you say that to a friend? be your own sidekick, soldier 🫂"], tips:["talk to yourself like you would to a good friend 💬", "write down one thing you did well today", "if it feels heavy for weeks, talking to a counselor can really help"], penalty:5},
+    {key:"complain", type:"bad", name:"Complaining", emoji:"😩", re:new RegExp("\\b(complain\\w*|whin(ed|ing)|moan(ed|ing)|vent(ed|ing) (too much|all day)|ranted)\\b","i"), lines:["everything is the worst, and also the best, depending on snacks 😩", "the complaint department is closed, soldier 😂"], tips:["follow every complaint with one thing you can do about it", "write down three good things from today 🙏", "vent once, then change the subject"]},
+    {key:"compare", type:"bad", name:"Comparing myself to others", emoji:"👀", re:new RegExp("\\b(compar(ed|ing) myself|comparison trap|jealous of|envied|envy)\\b","i"), lines:["you are comparing your gameplay to someone else's highlight reel, player 👀", "everyone is on a different level, champ 💜"], tips:["compare yourself to you from last month, not to strangers 📈", "mute accounts that make you feel small", "write down your own wins"], penalty:5},
+    {key:"perfect", type:"bad", name:"Perfectionism", emoji:"🧩", re:new RegExp("\\b(perfectionis\\w*|redid (it|everything) (again|\\d+ times)|couldn'?t (finish|submit|post|send) (it )?because it wasn'?t perfect|obsess\\w* over (the )?details)\\b","i"), lines:["done is better than perfect, warrior 🧩", "you rebuilt the same level 12 times, soldier 😂"], tips:["set a deadline and ship it, even at 8 out of 10 📤", "ask “is this good enough for the goal?”", "leave one tiny thing imperfect on purpose, as practice"]},
+    {key:"bed", type:"bad", name:"Not making the bed", emoji:"🛏️", re:new RegExp("\\b(didn'?t|did not|forgot to|never|skipped)\\s+(make|making)\\s+(my\\s+|the\\s+)?bed\\b|\\bunmade bed\\b","i"), lines:["the bed is a boss you can beat in 30 seconds, soldier 🛏️", "a messy bed is a messy dungeon, champ 😂"], tips:["make it right after you stand up, 30 seconds only 🛏️", "buy simple bedding that is easy to straighten", "stack it onto another morning habit"], noResist:true},
+    {key:"dishes", type:"bad", name:"Leaving dishes or laundry", emoji:"🍽️", re:new RegExp("\\b(left|leaving|piled up)\\s+(the\\s+|my\\s+)?(dishes|laundry|clothes on the floor|mess)\\b|\\b(dishes|laundry)\\s+(piled|stacked|are still)\\b|\\bdidn'?t (do|wash) (the |my )?(dishes|laundry)\\b","i"), lines:["the dishes are building a tower, soldier 🍽️", "laundry mountain: now with extra altitude, champ 😂"], tips:["wash dishes right after eating, 5 minutes max 🧽", "do one load of laundry on fixed days", "put on music and make it a mini game 🎶"], noResist:true},
+    {key:"takeout", type:"bad", name:"Ordering takeout too much", emoji:"🛵", re:new RegExp("\\b(ordered (food|takeout|take.?out|delivery|foodpanda)|foodpanda|(takeout|takeaway|delivery) (again|too much|every day))\\b","i"), lines:["the delivery rider knows your door by heart, soldier 🛵", "your wallet and your stomach are in a custody battle, champ 😂"], tips:["plan two or three easy home meals for the week 🍳", "delete the delivery app from your home screen", "cook once, eat twice"]},
+    {key:"alcohol", type:"bad", name:"Drinking alcohol", emoji:"🍺", re:new RegExp("\\b(got (drunk|wasted|hammered)|drank (too much|a lot)|(had|drank) (a few |some )?(beers?|drinks|wine|whisky|whiskey|vodka|alcohol)|hangover|binge drinking)\\b","i"), lines:["no lecture, champ 💜 just honest tracking", "thanks for being real with me, soldier 🫂"], tips:["plan non-alcohol drinks you actually like 🥤", "decide your limit before you go out", "if cutting down feels hard, a doctor can help"], penalty:10},
+    {key:"substance", type:"bad", name:"Substance use", emoji:"🌿", re:new RegExp("\\b(smoked weed|smoking weed|got high|did drugs|used drugs|took drugs|marijuana|cannabis)\\b","i"), lines:["no judgement, champ 💜 honest tracking is the first step", "thanks for trusting me with this, soldier 🫂"], tips:["notice your triggers (people, places, moods) and plan around them", "tell someone you trust, so you are not doing this alone", "a doctor or counselor can help without judging you"], penalty:10, front:true},
+    {key:"gambling", type:"bad", name:"Gambling or betting", emoji:"🎰", re:new RegExp("\\b(gambl\\w*|betting|placed (a )?bets?|lost (money )?(betting|gambling)|casino|sports bet\\w*|slot machines?)\\b","i"), lines:["the house always wins, soldier 🎰 let us protect your wallet", "honest tracking beats hiding it, champ 💜"], tips:["set a strict loss limit or block betting apps entirely 🔒", "tell someone you trust so you are not carrying it alone", "a helpline or counselor can help if it feels out of control"], penalty:10},
+    {key:"phonecheck", type:"bad", name:"Constantly checking phone", emoji:"📲", re:new RegExp("\\b((checked|checking|picked up|grabbed) my phone|phone (addiction|addicted)|can'?t (put|stay off) my phone|on my phone (all day|too much|for hours))\\b","i"), lines:["your phone is not a pet, but it gets petted a lot 📲", "unlock, check, repeat... classic loop, soldier 😂"], tips:["turn off non-essential notifications 🔕", "keep your phone in another room while you work", "try grayscale mode to make the screen less shiny"]},
+    {key:"screen", type:"bad", name:"Too much screen time", emoji:"💻", re:new RegExp("\\b(screen time|staring at (a |my |the )?(screen|monitor|laptop|computer)|eyes (hurt|are tired|are sore|burn)|eye strain|sat (at|in front of) (my |the )?(pc|computer|laptop|screen) (all day|for hours))\\b","i"), lines:["your eyes just asked for a patch note 💻", "blink twice if you are still there, soldier 😂"], tips:["follow 20-20-20: every 20 minutes look 20 feet away for 20 seconds 👀", "raise the screen brightness less and the room light more", "take a proper break outdoors"]},
+    {key:"tabs", type:"bad", name:"Too many open tabs", emoji:"🗂️", re:new RegExp("\\b(too many (tabs|windows|apps open)|\\d+ (chrome )?tabs|tab hoarding|inbox (has |is )?\\d+|\\d+ unread)\\b","i"), lines:["47 tabs open and none of them are the one you need, player 🗂️", "your laptop fan is crying, champ 😂"], tips:["close tabs at the end of each task, or bookmark them 🔖", "use a read-later list instead of keeping tabs open", "do a 5-minute inbox sweep once a day"]},
+    {key:"ghost", type:"bad", name:"Ignoring messages", emoji:"👻", re:new RegExp("\\b(ghost(ed|ing)|left (him|her|them|someone|people|my \\w+) on (read|seen)|(didn'?t|did not|haven'?t) (reply|replied|respond|responded|text(ed)? back|answer(ed)?)|ignored (their |his |her |my )?(texts?|messages?|calls?))\\b","i"), lines:["leaving people on read is a bad side quest, soldier 👻", "they are still waiting, champ 😂"], tips:["reply in 10 seconds with “hey, i'll answer properly tonight” 💬", "set a daily time to answer messages", "a short honest reply beats a long silence"], noResist:true},
+    {key:"anger", type:"bad", name:"Losing my temper", emoji:"😤", re:new RegExp("\\b(lost my (temper|cool)|snapped at|yelled at|shouted at|screamed at|got (so )?(angry|mad|furious)|rage quit|road rage|angry outburst)\\b","i"), lines:["your rage meter hit max, soldier 😤", "everyone has a final boss moment, champ 🫂"], tips:["take five slow breaths before replying 🌬️", "walk away for 10 minutes and come back", "apologize quickly if you snapped, it resets the mood"]},
+    {key:"lying", type:"bad", name:"Lying", emoji:"🤥", re:new RegExp("\\b(lied|told (a |some )?(white )?lies?|fibbed|made up an excuse|lying to)\\b","i"), lines:["your nose is level 2 now, player 🤥", "tiny lies, big inventory, soldier 😂"], tips:["pause and ask “what am i scared will happen if i tell the truth?”", "practice one honest sentence instead", "own the small ones, it is easier than remembering them"]},
+    {key:"hoard", type:"bad", name:"Hoarding stuff", emoji:"📦", re:new RegExp("\\b(hoard\\w*|can'?t throw (things )?away|keeping (junk|clutter)|too much clutter|cluttered)\\b","i"), lines:["your inventory is full of “might need it someday” 📦", "carry weight exceeded, soldier 😂"], tips:["try the “one in, one out” rule 📦", "donate things you haven't used in a year", "start with one drawer, not the whole house"]},
+    {key:"loudmusic", type:"bad", name:"Loud headphones", emoji:"🎧", re:new RegExp("\\b(loud (music|headphones|earbuds|volume)|blasting (my )?(music|headphones|earbuds)|volume (max|full|too high)|headphones (all day|too loud))\\b","i"), lines:["your ears are filing a noise complaint 🎧", "turn it down a notch, warrior 😂"], tips:["keep volume under 60 percent and take breaks 🎧", "use headphones that fit well so you don't need it loud", "give your ears a quiet hour each day"]},
+    {key:"textmove", type:"bad", name:"Texting while moving", emoji:"📵", re:new RegExp("\\b(texting while (driving|walking|crossing)|used my phone (while|when) driving|phone while driving|scrolled while walking)\\b","i"), lines:["that one is a real-life hazard, soldier 🚗 please stay safe", "the reply can wait, champ 💜"], tips:["put the phone on do-not-disturb while driving 🚗", "pull over to answer, always", "use voice assistants for urgent stuff"]},
+    {key:"stresseat", type:"bad", name:"Stress eating", emoji:"🍫", re:new RegExp("\\b(stress.?eat\\w*|emotional(ly)? eat\\w*|ate (my )?(feelings|emotions)|comfort food|ate (when|because) (i was )?(sad|stressed|bored|anxious|upset))\\b","i"), lines:["comfort food is a very real side quest, champ 🍫", "no shame, soldier 🫂 but the feelings are still there after the snack"], tips:["pause and ask “am i hungry or am i feeling something?” 🍫", "try a 5-minute walk or a call with a friend first", "keep gentler snacks around (fruit, nuts)"]},
+    {key:"eatfast", type:"bad", name:"Eating too fast", emoji:"⏩", re:new RegExp("\\b(ate (too )?(fast|quickly)|wolfed|inhaled (my )?(food|lunch|dinner)|rushed (my )?(meal|lunch|dinner))\\b","i"), lines:["your food did not even see you coming ⏩", "slow down, speedrunner, it's not a time attack 😂"], tips:["put your fork down between bites 🍴", "chew each bite a bit longer", "eat without screens for one meal a day"]},
+    {key:"newscheck", type:"bad", name:"Checking news obsessively", emoji:"📰", re:new RegExp("\\b(checked the news|reading the news (all day|too much)|news (all day|too much)|obsess\\w* (over|about) the news)\\b","i"), lines:["the news will still be bad in an hour, soldier 📰", "breaking: you need a break, champ 😂"], tips:["pick two news times a day, then stop 📰", "turn off breaking-news alerts", "follow one trusted source instead of ten"]},
+    {key:"isolate", type:"bad", name:"Isolating myself", emoji:"🏠", re:new RegExp("\\b(isolat(ed|ing) myself|avoided (everyone|people|friends|my friends|going out)|cancell?ed (on )?(plans|friends)|stayed (home|inside) (all day|again)|didn'?t (leave|go out of) (the )?(house|room))\\b","i"), lines:["thanks for being honest, champ 💜 some days are like that", "you are not alone, soldier 🫂"], tips:["send one small message to someone, it counts 💬", "step outside for 5 minutes, even to the balcony 🌿", "if it lasts weeks, talking to someone you trust helps"], noResist:true, penalty:5},
+    {key:"meds", type:"bad", name:"Forgetting meds", emoji:"💊", re:new RegExp("\\b(forgot|missed|skipped)\\s+(to take\\s+)?(my\\s+)?(meds|medication|medicine|pills|vitamins|supplements)\\b","i"), lines:["thanks for telling me, soldier 💊 no judgement", "easy fix, champ, we will set up a reminder 💜"], tips:["set a daily phone alarm for the same time ⏰", "use a weekly pill box 💊", "if you often miss important meds, ask your doctor about easier options"], noResist:true, penalty:5},
+    {key:"pricecheck", type:"bad", name:"Checking prices obsessively", emoji:"📉", re:new RegExp("\\b(checked (the )?(crypto|stocks?|bitcoin|prices?|portfolio) (again|too much|every)|watching (the )?(charts?|stocks?|crypto)( all day)?)\\b","i"), lines:["the chart goes up and down, so does your blood pressure, soldier 📉", "staring at the line will not move it, champ 😂"], tips:["check only once a day, at a set time 📉", "remove the price widget from your home screen", "write down your plan, then stick to it"]},
+    {key:"exstalk", type:"bad", name:"Stalking my ex online", emoji:"🕵️", re:new RegExp("\\b(stalk(ed|ing)|creep(ed|ing) on|(checked|looked at|viewed) my ex|(texted|messaged|called|dm(ed)?) my ex)\\b","i"), lines:["detective mode: activated, case: closed, soldier 🕵️", "we have all been there, champ 💜 but it's a trap 😂"], tips:["mute or block their accounts for a while 🔕", "text a friend instead of looking", "fill the free time with something new"]},
+    {key:"onlinefight", type:"bad", name:"Arguing online", emoji:"🧨", re:new RegExp("\\b(argu(ed|ing) (with|online)|(got )?into (a|an) (argument|fight|debate|flame war) (online|on (twitter|x|reddit|facebook|instagram|youtube))|comment section|replied to (a )?troll|fought (with )?(strangers|trolls))\\b","i"), lines:["winning an argument with a stranger online gives zero XP, player 🧨", "the comment section is a dungeon with no loot, soldier 😂"], tips:["set a rule: no replies after the first one 🧨", "mute the thread and walk away", "ask “will this matter next week?”"]},
+    {key:"nosepick", type:"bad", name:"Picking nose", emoji:"🤏", re:new RegExp("\\b(pick(ed|ing)? my nose|nose.?pick\\w*)\\b","i"), lines:["we have all been there, soldier 🤏 just do it in private", "the most honest habit on the list, champ 😂"], tips:["use a tissue instead 🧻", "wash your hands afterwards", "keep your nose moist with saline spray if it feels dry"]},
+    {key:"nobreak", type:"bad", name:"Working without breaks", emoji:"⏸️", re:new RegExp("\\b((worked|studied|coded|sat|gamed|played) (for )?(\\d+|several|many) hours (straight|without (a )?break)|no breaks?|skipped (my )?breaks?|without taking a break)\\b","i"), lines:["even game characters rest at campfires, soldier ⏸️", "your save point is begging, champ 😂"], tips:["work in 25-minute blocks with 5-minute breaks 🍅", "stand up and drink water on every break", "walk for 5 minutes at lunch"], noResist:true},
+    {key:"overwork", type:"bad", name:"Overworking", emoji:"💼", re:new RegExp("\\b(overwork\\w*|worked (all night|all weekend|overtime|till (midnight|3|4))|workaholic|burn(ed|t)? out|burnout)\\b","i"), lines:["the boss fight never ends if you never log off, warrior 💼", "rest is a power-up too, champ 😴"], tips:["set a hard stop time and tell someone 💼", "protect one full day off a week", "if you feel burned out for weeks, talk to someone you trust"], penalty:10},
+    {key:"gratitude", type:"good", name:"Gratitude", emoji:"🙏", re:new RegExp("\\b(grateful|gratitude|thankful|counted my blessings|thanked (someone|my \\w+))\\b","i"), lines:["gratitude: the cheapest buff in the game 🙏", "good vibes stacked, warrior ✨"], tips:["write three things you are grateful for before bed ✍️", "thank one person out loud today", "notice one small good thing each morning"]},
+    {key:"social", type:"good", name:"Connecting with people", emoji:"☎️", re:new RegExp("\\b(called|texted|messaged|video.?called|hung out with|met up with|caught up with|visited|had (dinner|lunch|tea) with|spent time with|talked to|talked with|chatted with)\\s+(a |my )?(friends?|family|mom|mum|mama|mother|dad|father|parents?|sister|brother|grandma|grandpa|grandmother|grandfather|cousins?|bestie|buddy|neighbou?r)\\b","i"), lines:["friends and family are the best party members ☎️", "connection unlocked, soldier 💜"], tips:["schedule one call a week, like an appointment 📅", "send a quick “thinking of you” message", "invite someone for tea, it is easy and warm ☕"]},
+    {key:"pets", type:"good", name:"Caring for pets", emoji:"🐾", re:new RegExp("\\b((fed|played with|cuddled|pet|petted|brushed|cleaned|groomed|bathed) (my |the )?(dog|cat|puppy|kitten|parrot|bird|turtle|tortoise|fish|hamster|rabbit)|took (my )?(dog|cat) to (the )?vet)\\b","i"), lines:["pet care is a legendary side quest 🐾", "your pet gives you five stars, champ ⭐"], tips:["set fixed feeding and play times 🕙", "give them a bit of attention before you check your phone", "keep their vet check-ups in your calendar"]},
+    {key:"skincare", type:"good", name:"Skincare", emoji:"🧴", re:new RegExp("\\b(skincare|skin care|moisturi[sz]\\w*|face (wash|mask)|washed my face|sunscreen|sunblock|serum|cleanser)\\b","i"), lines:["glow-up in progress, champ 🧴", "sunscreen is the real final boss killer, soldier ☀️"], tips:["wash your face at night, that is the most important one 🧴", "wear sunscreen even when it is cloudy", "keep the routine to three simple steps"]},
+    {key:"brushing", type:"good", name:"Brushing and flossing", emoji:"🪥", re:new RegExp("\\b(brush(ed|ing)? (my )?teeth|flossed|flossing|mouthwash)\\b","i"), lines:["sparkling smile, soldier 🪥", "teeth: healthy, plaque: defeated, champ 😁"], tips:["brush for two full minutes ⏱️", "floss once a day, even if it is just a few teeth", "keep a spare brush in your bag"]},
+    {key:"coldshower", type:"good", name:"Cold showers", emoji:"🥶", re:new RegExp("\\b(cold (shower|plunge|bath)|ice bath)\\b","i"), lines:["cold shower? brave warrior 🥶", "wide awake and proud of it, champ 💪"], tips:["end your regular shower with 30 seconds of cold 🥶", "breathe slowly while the water hits", "build up slowly, don't jump into the freezer"]},
+    {key:"shower", type:"good", name:"Staying fresh", emoji:"🚿", re:new RegExp("\\b(took (a )?(shower|bath)|showered|had (a )?(shower|bath))\\b","i"), lines:["fresh and clean, soldier 🚿", "smells like victory, champ 😎"], tips:["shower at the same time daily so it becomes automatic 🚿", "keep your towel and clean clothes ready", "a quick rinse still counts on busy days"]},
+    {key:"bed", type:"good", name:"Making the bed", emoji:"🛏️", re:new RegExp("\\b(made (my |the )?bed|making (my |the )?bed)\\b","i"), lines:["first quest of the day: complete 🛏️", "a tidy bed, a tidy mind, soldier ✨"], tips:["make it right after you wake up, 30 seconds", "a simple duvet makes it faster", "chain it to brushing your teeth"]},
+    {key:"veggies", type:"good", name:"Eating fruit and veggies", emoji:"🥦", re:new RegExp("\\b(ate|had|eating)\\s+(some\\s+|a\\s+|my\\s+)?(fruits?|veg(gies|etables?)?|apples?|bananas?|oranges?|greens|broccoli|carrots?|spinach)\\b","i"), lines:["veggies eaten: +10 health, warrior 🥦", "fruit is nature's health potion, champ 🍎"], tips:["add one fruit or veg to every meal 🍎", "keep washed fruit visible on the counter", "try a new veggie once a week"]},
+    {key:"breakfast", type:"good", name:"Eating breakfast", emoji:"🥣", re:new RegExp("\\b(ate|had|eating|made)\\s+(a\\s+|my\\s+)?(healthy\\s+)?breakfast\\b","i"), lines:["breakfast: the best buff of the morning 🥣", "fueled up and ready, soldier ⚡"], tips:["prep it the night before (like overnight oats) 🥣", "include some protein to stay full", "keep it simple, it does not need to be fancy"]},
+    {key:"vitamins", type:"good", name:"Taking vitamins or meds", emoji:"💊", re:new RegExp("\\b(took|taking|remembered)\\s+(my\\s+)?(vitamins?|meds|medication|medicine|supplements|pills)\\b","i"), lines:["small habit, big payoff 💊", "you remembered, champ, nice ✅"], tips:["put them next to your toothbrush 🪥", "use a weekly pill box", "set a phone alarm for the same time every day"]},
+    {key:"planning", type:"good", name:"Planning my day", emoji:"📝", re:new RegExp("\\b(planned (my|the) (day|week)|made (a |my )?(to.?do list|todo list|schedule|plan)|to.?do list|organi[sz]ed my (day|week|schedule|tasks)|checked off)\\b","i"), lines:["a plan is a map for the day, warrior 📝", "quest log: updated, champ ✅"], tips:["pick your top 3 tasks for the day first 📝", "plan tomorrow before you finish today", "leave space for breaks and surprises"]},
+    {key:"saving", type:"good", name:"Saving money", emoji:"🐷", re:new RegExp("\\b(saved (some )?(money|cash)|budget(ed|ing)?|tracked my (spending|expenses)|put money (aside|away)|no.?spend day)\\b","i"), lines:["gold saved is gold earned, soldier 🐷", "your future self just high-fived you, champ 💰"], tips:["move savings out of sight, right after payday 💰", "track every expense for one month", "set one small goal, like an emergency fund"]},
+    {key:"language", type:"good", name:"Learning a language", emoji:"🗣️", re:new RegExp("\\b(duolingo|language (practice|lesson|class)|learned (a )?new (word|words|phrase|phrases)|vocabulary)\\b","i"), lines:["new words unlocked, player 🗣️", "every language is a new skill tree, champ 🌳"], tips:["practice 10 minutes every day, same time 🗣️", "label things around your house", "talk to yourself in the language"]},
+    {key:"coding", type:"good", name:"Coding", emoji:"💻", re:new RegExp("\\b(coded|coding|programm(ed|ing)|built (an? )?(app|website|site|bot|game|script)|wrote (some )?code|debugg\\w*|fixed (a )?bug|learned (python|javascript|html|css|react))\\b","i"), lines:["you are writing the matrix now, hacker 💻", "bug squashed, level up, soldier 🐛"], tips:["build something small every week 💻", "read other people's code", "commit often, even when it's messy"]},
+    {key:"music", type:"good", name:"Playing music", emoji:"🎸", re:new RegExp("\\b((played|practi[sc]ed|practising|practicing) (the )?(guitar|piano|violin|drums|ukulele|flute|keyboard|bass|saxophone)|sang|singing|composed|made (a )?beat)\\b","i"), lines:["music is a legendary buff, warrior 🎸", "encore! encore! champ 🎶"], tips:["practice 15 minutes daily, not 2 hours once a week 🎵", "record yourself to hear your progress", "learn one song you truly love"]},
+    {key:"dance", type:"good", name:"Dancing", emoji:"💃", re:new RegExp("\\b(danced|dancing|dance (class|practice))\\b","i"), lines:["dance mode: ON, soldier 💃", "you just did cardio and had fun, champ 🎉"], tips:["dance for one song while you do chores 🎶", "follow a video for 10 minutes", "dance with a friend, it's easier"]},
+    {key:"outside", type:"good", name:"Touching grass", emoji:"🌿", re:new RegExp("\\b(touched grass|went outside|got (some )?(sun|sunlight|fresh air)|sat (outside|in the sun|in the garden)|spent time (outside|in nature)|went (to the park|hiking|camping)|hiked|gardening|gardened)\\b","i"), lines:["touched grass: achievement unlocked 🌿", "vitamin D collected, warrior ☀️"], tips:["get outside within an hour of waking up ☀️", "eat lunch outside when you can", "a 10-minute walk in a park counts"]},
+    {key:"detox", type:"good", name:"Phone-free time", emoji:"📵", re:new RegExp("\\b(digital detox|screen.?free|(put|kept|left) my phone (away|aside|in another room|outside)|phone[- ]free|no phone (today|for)|stayed off (my )?phone|offline (day|for))\\b","i"), lines:["phone-free time: peak discipline, soldier 📵", "the real world loaded just fine, champ 🌍"], tips:["leave the phone in another room for one hour 📵", "use a physical alarm clock", "start with the first and last 30 minutes of your day"]},
+    {key:"helping", type:"good", name:"Helping others", emoji:"🤲", re:new RegExp("\\b(helped (someone|a friend|my (mom|mum|dad|neighbou?r|sister|brother)|a stranger|out)|volunteer\\w*|donated|donation|did a good deed|gave (to )?charity|gave (zakat|sadaqah)|random act of kindness)\\b","i"), lines:["kindness is the best loot drop 🤲", "hero move, soldier, the world needs more of you 🌟"], tips:["do one small kind thing every day 🤲", "say thank you out loud", "give your time, it counts as much as money"]},
+    {key:"spiritual", type:"good", name:"Spiritual time", emoji:"🕊️", re:new RegExp("\\b(prayed|prayer|namaz|salah|salat|quran|recited|went to (church|mosque|temple|masjid)|read (the )?(bible|quran|gita)|dhikr|zikr|tasbih)\\b","i"), lines:["a quiet moment for the soul 🕊️ lovely, warrior", "peace unlocked, champ 💜"], tips:["tie it to a fixed daily time ⏰", "keep a calm, quiet spot ready", "start small and keep it steady"]},
+    {key:"breaks", type:"good", name:"Taking breaks", emoji:"⏸️", re:new RegExp("\\b(took (a )?(short |quick |screen |proper )?break|stood up and (stretched|moved|walked)|got up from (my )?(desk|chair)|moved every hour|pomodoro|20.?20.?20|rested my eyes)\\b","i"), lines:["saved at the campfire, soldier ⏸️", "rest is a power-up too, champ 😌"], tips:["use a timer: 25 minutes work, 5 minutes break 🍅", "drink water on every break", "look at something far away to rest your eyes"]},
+    {key:"early", type:"good", name:"Waking up early", emoji:"🌅", re:new RegExp("\\b(woke up early|got up early|up at (4|5|6)|early (morning|riser)|(5|6) ?am (wake|alarm))\\b","i"), lines:["early bird mode, warrior 🌅", "the morning is a free bonus level, champ ☀️"], tips:["go to bed earlier first, then wake earlier 😴", "put the alarm across the room", "plan something nice for the first 30 minutes"]},
+    {key:"writing", type:"good", name:"Writing", emoji:"✍️", re:new RegExp("\\b(wrote (a |some |my )?(story|poem|blog|post|chapter|script|letter|article|essay|pages?)|writing (a |my )?(story|book|blog|script|novel))\\b","i"), lines:["words on the page, writer ✍️", "the world needs your story, champ 📖"], tips:["write for 10 minutes a day, no editing ✍️", "keep a notes app ready for ideas", "finish messy drafts first, polish later"]},
+    {key:"baking", type:"good", name:"Baking", emoji:"🍪", re:new RegExp("\\b(baked|baking|made (a )?(cake|cookies?|bread|pizza from scratch))\\b","i"), lines:["fresh from the oven, chef 🍪", "the whole house smells like victory, soldier 😋"], tips:["start with simple recipes like cookies 🍪", "measure carefully, baking is science", "share what you make, it tastes better"]},
+    {key:"crafts", type:"good", name:"Making things by hand", emoji:"🧶", re:new RegExp("\\b(knit\\w*|crochet\\w*|sewed|sewing|woodwork\\w*|diy|crafted|crafting|origami|built (a )?(model|lego|shelf|table)|lego)\\b","i"), lines:["handmade goods: crafting skill +1 🧶", "your hands are building something real, soldier 🔨"], tips:["start with one small project 🧶", "watch a tutorial and copy it step by step", "keep supplies in one box so it is easy to begin"]},
+    {key:"brain", type:"good", name:"Brain games", emoji:"🧩", re:new RegExp("\\b(chess|sudoku|crossword|jigsaw|puzzle[sd]?|rubik|solved (a )?puzzle|board game)\\b","i"), lines:["big brain energy, player 🧩", "checkmate, champ ♟️"], tips:["do one puzzle a day, 10 minutes 🧩", "play with a friend", "try a new type of puzzle each week"]},
+    {key:"photos", type:"good", name:"Taking photos", emoji:"📷", re:new RegExp("\\b(took (some )?(photos?|pictures?|pics)|photograph\\w*|went photo walking)\\b","i"), lines:["capturing the world, photographer 📷", "great eye, soldier ✨"], tips:["take one photo a day of something interesting 📷", "learn the rule of thirds", "edit lightly, keep it natural"]},
+    {key:"learning", type:"good", name:"Listening and learning", emoji:"🎧", re:new RegExp("\\b(listened to (a )?(podcast|audiobook|lecture)|watched (a )?(documentary|tutorial|lecture|ted talk)|read an article)\\b","i"), lines:["knowledge acquired, +5 wisdom 🎧", "learning on the go, champ 🚶"], tips:["listen while you walk or do chores 🎧", "write one thing you learned afterwards", "follow topics you are curious about"]},
+    {key:"stars", type:"good", name:"Stargazing", emoji:"🌌", re:new RegExp("\\b(star.?gaz\\w*|watched (the )?(sunset|sunrise|stars|moon)|looked at the stars)\\b","i"), lines:["the sky is the best free show 🌌", "moments like this are the real loot, champ ✨"], tips:["step outside at dusk for five minutes 🌌", "leave your phone inside", "find a spot away from bright lights"]},
+    {key:"boundaries", type:"good", name:"Setting boundaries", emoji:"🛑", re:new RegExp("\\b(said no|set (a )?boundar(y|ies)|stood up for myself|turned (it|them|him|her) down politely|protected my (time|peace|energy))\\b","i"), lines:["saying no is a power move, warrior 🛑", "boundaries set: defense +10, champ 🛡️"], tips:["practice one short, kind “no” 🛑", "you don't owe a long explanation", "pause before saying yes"]},
+    {key:"peace", type:"good", name:"Making peace", emoji:"🤝", re:new RegExp("\\b(apologi[sz]ed|said sorry|forgave|forgiven|made up with|settled (the|an) argument|reconciled)\\b","i"), lines:["apologizing takes real courage, soldier 🤝", "peace treaty signed, champ 🕊️"], tips:["be specific: “i'm sorry for ...” 🤝", "listen without defending", "give forgiveness time, it can take a while"]},
+    {key:"therapy", type:"good", name:"Looking after my mind", emoji:"🛋️", re:new RegExp("\\b(therapy|therapist|counsel(l)?ing|counsel(l)?or|talked (to|with) (a |my )?(therapist|counsel(l)?or|doctor)|asked for help|reached out for help)\\b","i"), lines:["asking for help is brave 💜 proud of you, soldier", "taking care of your mind is the best investment, champ 🛋️"], tips:["write down what you want to talk about before you go 📝", "be patient, it takes time", "tell one trusted person you're doing this"]},
+    {key:"mindfuleat", type:"good", name:"Mindful eating", emoji:"🍽️", re:new RegExp("\\b(ate slowly|chewed (slowly|properly)|mindful(ly)? (eating|ate))\\b","i"), lines:["slow food, happy tummy 🍽️", "you actually tasted your food, warrior 😋"], tips:["put your fork down between bites 🍴", "eat without screens once a day", "pause halfway and ask if you're still hungry"]},
+    {key:"declutter", type:"good", name:"Decluttering", emoji:"📦", re:new RegExp("\\b(declutter\\w*|threw away (junk|old stuff)|donated (old )?(clothes|stuff|things)|organi[sz]ed my (room|desk|closet|wardrobe|files))\\b","i"), lines:["less stuff, more space, soldier 📦", "inventory management: expert level, champ 🎒"], tips:["start with one drawer, 10 minutes 📦", "use a donate box that is always open", "ask “have i used this this year?”"]},
+    {key:"recycle", type:"good", name:"Recycling", emoji:"♻️", re:new RegExp("\\b(recycl\\w*|reused|used (a )?(reusable|cloth) bag|planted (a )?tree|composted)\\b","i"), lines:["saving the planet one bottle at a time ♻️", "earth says thanks, hero 🌍"], tips:["keep a small recycling bin where you throw things away ♻️", "carry a reusable bottle and bag", "repair before you replace"]},
+    {key:"mealprep", type:"good", name:"Meal prepping", emoji:"🥡", re:new RegExp("\\b(meal ?prep\\w*|prepped (my )?(meals|lunch|food))\\b","i"), lines:["meal prep master, chef 🥡", "future you is so grateful, soldier 😌"], tips:["prep on one fixed day each week 🥡", "cook one grain, one protein and veggies", "use clear containers so you can see what's inside"]},
+    {key:"sports", type:"good", name:"Playing sports", emoji:"🏅", re:new RegExp("\\b((played|playing) (football|soccer|cricket|basketball|badminton|tennis|volleyball|table tennis|hockey|squash|frisbee)|cycled|cycling|biked|swimming|swam|boxing|martial arts|karate|yoga class)\\b","i"), lines:["team player! 🏅 sports are real-life multiplayer", "sweat and fun at once, soldier ⚽"], tips:["play at the same time every week 🏅", "join a local club or group", "focus on fun, the fitness follows"]}
+  ];
+  MORE.forEach(function (m) {
+    var c = { key: m.key, type: m.type, name: m.name, emoji: m.emoji, re: m.re, noResist: !!m.noResist, penalty: m.penalty || 0 };
+    if (m.type === 'bad') c.jokes = m.lines; else c.praise = m.lines;
+    if (m.front) CATS.unshift(c); else CATS.push(c);
+    TIPS[m.key] = m.tips;
+  });
+  CATS.sort(function (a, b) { return (a.type === 'good') - (b.type === 'good'); });
+  function penOf(h) { var c = catByKey(h.key); return c && c.penalty ? c.penalty : XP_BAD; }
+  function tipFor(h) {
+    var c = catByKey(h.key), arr = c && TIPS[c.key] ? TIPS[c.key] : (h.type === 'good' ? GEN_TIP_GOOD : GEN_TIP_BAD);
+    return '💡 tip for “' + h.name + '”: ' + pick(arr);
+  }
+  function logGood(h, quiet) {
+    h.count++;
+    if (!quiet) { var c = catByKey(h.key); bot((c ? pick(c.praise) : pick(GEN_GOOD)(h.name)) + ' +15 xp ✨', 'cheer'); }
+    changeXP(XP_GOOD);
+  }
+  function logSlip(h, quiet) {
+    h.count++;
+    if (!quiet) {
+      var c = catByKey(h.key), msg = c ? pick(c.jokes) : pick(GEN_BAD)(h.name);
+      if (h.count >= 3) msg += ' (that is ' + h.count + ' times now, maybe we set a smaller goal? 🎯)';
+      bot(msg + ' −' + penOf(h) + ' xp 🤕', 'sad');
+      bot(tipFor(h), 'happy');
+    }
+    changeXP(-penOf(h));
+  }
+  function logWin(h, quiet) {
+    if (!quiet) bot(pick(GEN_WIN)(h.name) + ' +10 xp 😤', 'cheer');
+    changeXP(XP_WIN);
+  }
+
+  /* ---------- understanding what the user said ---------- */
+  function matchCat(clause) { for (var i = 0; i < CATS.length; i++) if (CATS[i].re.test(clause)) return CATS[i]; return null; }
+  function cleanName(c) {
+    var s = c.replace(/^(um+|uh+|so|well|and|then|i'?m|i am|i|i've|i have)\s+/i, '').replace(/^(um+|uh+|so|well)\s+/i, '').trim();
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    return s.length > 40 ? s.slice(0, 38) + '…' : s;
+  }
+  function analyze(text) {
+    text = text.replace(/\b(um+|uh+|hmm+|erm?|lol|lmao)\b/gi, ' ').replace(/\.{2,}/g, '. ');
+    var clauses = text.split(/[.!?;\n,]+|\band\b|\bbut\b|\bthen\b/i).map(function (c) { return c.trim(); }).filter(function (c) { return c.length >= 3; });
+    var tasks = [], seen = {};
+    clauses.forEach(function (c) {
+      var cat = matchCat(c), flipped = false;
+      /* "I didn't skip the gym" should count as working out, not as skipping */
+      if (cat && cat.key === 'skip' && /\b(didn'?t|did not|never|haven'?t|not)\s+(skip|miss|skipped|missed)\b/i.test(c)) { cat = catByKey('workout') || cat; flipped = true; }
+      if (cat) {
+        if (seen[cat.key]) return; seen[cat.key] = 1;
+        tasks.push({ kind: 'cat', cat: cat, neg: !flipped && cat.type === 'good' && NEG.test(c), resist: cat.type === 'bad' && !cat.noResist && RESIST.test(c) });
+      } else if (c.split(/\s+/).length >= 3 && !/^(i )?(feel|felt|am|was|i'?m)\b/i.test(c) && !/\b(feel|felt|feeling)\b/i.test(c) && !/^(ok(ay)?|yes|no|haha|idk|nothing|nvm)\b/i.test(c) && !/\b(yes|yep|yeah|nope|habit|improve|track it|habitron)\b/i.test(c)) {
+        tasks.push({ kind: 'unknown', clause: c });
+      }
+    });
+    tasks.sort(function (a, b) { return (a.kind === 'unknown') - (b.kind === 'unknown'); });
+    return tasks;
+  }
+  function run(tasks) {
+    var t = tasks.shift();
+    if (!t) return;
+    var next = function () { run(tasks); };
+    if (t.kind === 'unknown') return askUnknown(t.clause, next);
+    var cat = t.cat, h = findHabit(cat.key);
+    if (cat.type === 'good') {
+      if (t.neg) { bot('aww, no worries about ' + cat.name.toLowerCase() + ' 🫂 tomorrow is a fresh start, and i will count it when you do it, ' + nick() + '!', 'happy'); return next(); }
+      if (h) { logGood(h); return next(); }
+      return askAdd(cat, t, next);
+    }
+    if (h) { if (t.resist) logWin(h); else logSlip(h); return next(); }
+    askAdd(cat, t, next);
+  }
+  function askAdd(cat, t, next) {
+    var good = cat.type === 'good';
+    var q = good ? pick(cat.praise) + '\n' + 'want me to add “' + cat.name + '” to your good habits? 😊'
+      : t.resist ? 'you resisted something! 😳 i think it is “' + cat.name + '”. want me to track it as a bad habit you are working on? 💪'
+      : pick(cat.jokes) + '\n' + 'want me to take “' + cat.name + '” as a habit you are trying to improve, ' + nick() + '? 🥺';
+    var yes = function () {
+      pending = null; var h = addHabit(cat.name, good ? 'good' : 'bad', cat.key);
+      if (good) { bot('added to good habits! 🎉 +15 xp ✨', 'cheer'); logGood(h, true); bot(tipFor(h).replace('💡 tip', '💡 tip to keep it going'), 'happy'); }
+      else if (t.resist) { bot('added to bad habits 😌 and that resist is worth +10 xp 😤 keep it up, ' + nick() + '!', 'cheer'); h.count = h.count; logWin(h, true); bot(tipFor(h), 'happy'); }
+      else { bot('i added this in bad habits 😌 just tell me if you did something like that again and the count goes up. fair warning, ' + nick() + ': your level will go down 😬', 'happy'); logSlip(h, true); bot(tipFor(h), 'happy'); }
+      next();
+    };
+    var no = function () { pending = null; bot('okay, no problem! 😊 i will not track it.', 'happy'); next(); };
+    pending = { kind: 'yn', yes: yes, no: no };
+    bot(q, 'think', [{ label: good ? 'Yes, track it 😊' : 'Um… yes 🥺', fn: yes }, { label: 'No thanks', fn: no }]);
+  }
+  function askUnknown(clause, next) {
+    var add = function (type) { return function (name) {
+      pending = null; name = (name || '').trim() || cleanName(clause);
+      var h = addHabit(name, type, 'u' + uid());
+      bot('added “' + name + '” to your ' + type + ' habits ' + (type === 'good' ? '🎉' : '😌') + (type === 'good' ? ' +15 xp ✨' : ' −20 xp 🤕'), type === 'good' ? 'cheer' : 'sad');
+      if (type === 'good') logGood(h, true); else logSlip(h, true);
+      bot(tipFor(h), 'happy');
+      next();
+    }; };
+    var more = add('good'), less = add('bad');
+    var skip = function () { pending = null; bot('no problem, skipping that one! 😊', 'happy'); next(); };
+    pending = { kind: 'more', more: function () { more(cleanName(clause)); }, less: function () { less(cleanName(clause)); }, skip: skip };
+    var acts = [{ label: 'More of it 😊', fn: more }, { label: 'Less of it 😬', fn: less }, { label: 'Skip', fn: skip }];
+    acts.input = cleanName(clause);
+    bot('hmm, i am not sure about “' + clause + '” 🤔 is this something you want to do more of, or less of? you can rename it first ✏️', 'think', acts);
+  }
+
+  function answerPending(text) {
+    var t = text.trim().toLowerCase();
+    if (pending.kind === 'yn') {
+      var saysNo = /\b(no|nah|nope|nvm|don'?t|not really|skip)\b/.test(t);
+      var saysYes = /\b(y|yes|yeah|yea|ya|yep|yup|sure|ok|okay|please|do it|track it|correct|right|exactly|trying to improve|add it)\b/.test(t);
+      if (saysYes && !saysNo) { clearActions(); pending.yes(); return true; }
+      if (saysNo) { clearActions(); pending.no(); return true; }
+    } else {
+      if (/\b(more|good)\b/.test(t)) { clearActions(); pending.more(); return true; }
+      if (/\b(less|bad|stop)\b/.test(t)) { clearActions(); pending.less(); return true; }
+      if (/\b(skip|no|nah|nvm|nope)\b/.test(t)) { clearActions(); pending.skip(); return true; }
+    }
+    return false;
+  }
+
+  var JOKES = [
+    'why did the habit cross the road? to get to the other XP bar 🐔😂',
+    'i tried to quit procrastinating... i will start tomorrow 😎',
+    'what do you call a lazy kangaroo? pouch potato 🥔😂',
+    'my favorite exercise is a cross between a lunge and a crunch. it is called lunch 🍔😂',
+    'why do gamers never get lost? they always follow the quest marker 🧭😂',
+    'i would tell you a joke about sleep, but you would not wake up for it 😴'
+  ];
+  var PEP = [
+    function () { return 'you got this, ' + who() + '! 💪 one small win at a time.'; },
+    function () { return 'every legend started at level 0, ' + who() + ' 🌟 and look at you go!'; },
+    function () { return 'bad day? 🫂 that is just a loading screen, ' + who() + '. the next run is yours!'; }
+  ];
+  function handle(text) {
+    text = text.trim(); if (!text) return;
+    appendMsg('me', text);
+    if (pending) { if (answerPending(text)) return; pending = null; clearActions(); }
+    if (/\b(kill myself|killing myself|suicid\w*|end my life|end it all|want to die|wanna die|self.?harm\w*|cutting myself)\b/i.test(text)) return bot('i am really sorry you are feeling this way, and i am glad you told me 💜 this is bigger than a habit, so i am not going to score it. please talk to someone you trust right now, or contact a local crisis line or emergency number if you might act on these thoughts. you do not have to carry this alone.', 'sad');
+    if (/\b(starv\w* myself|made myself (throw up|puke|vomit)|purg\w*)\b/i.test(text)) return bot('that sounds really hard 💜 i am not going to count this like a habit. a doctor or counselor can help with eating, and telling someone you trust is a good first step. you deserve support.', 'sad');
+    if (/^(hi|hey|hello|yo|hiya|sup)\b/i.test(text) && text.length < 20) return bot('hiya ' + who() + '! 👋 so what did you do today?', 'cheer');
+    if (/^(thanks|thank you|thx|ty)\b/i.test(text)) return bot('anytime, ' + who() + '! 😊💜', 'cheer');
+    if (/\b(joke|make me laugh|funny)\b/i.test(text)) return bot(pick(JOKES), 'cheer');
+    if (/\b(motivat\w*|encourage|cheer me up|i am sad|i feel sad)\b/i.test(text)) return bot(pick(PEP)(), 'happy');
+    if (/\b(tips?|advice|how (do|can) i (stop|quit|improve|get better|do better|start))\b/i.test(text)) {
+      var tc = matchCat(text);
+      if (tc) return bot('💡 tip for “' + tc.name + '”: ' + pick(TIPS[tc.key]), 'happy');
+      if (S.habits.length) return bot(tipFor(pick(S.habits)), 'happy');
+      return bot('💡 tip: ' + pick(GEN_TIP_BAD.concat(GEN_TIP_GOOD)) + ' (tell me a habit and i will give you a tip just for it 😊)', 'happy');
+    }
+    if (/(how am i doing|my level|my progress|status)/i.test(text)) {
+      var g = S.habits.filter(function (h) { return h.type === 'good'; }).length, b = S.habits.length - g, l = lvlOf(S.xp);
+      return bot('you are level ' + l + ' (' + titleOf(l) + ') with ' + (S.xp % PER) + '/' + PER + ' xp towards the next one 📊 you track ' + g + ' good and ' + b + ' bad habits.', 'happy');
+    }
+    if (/^(help|\?)$/i.test(text)) return bot('i know about ' + CATS.length + ' habits, from coffee to cricket! just tell me what you did, like “i went to the gym” or “i scrolled too much” 😊 i will guess if it is a good or bad habit and ask before adding it. ask “how do i stop scrolling?” for tips 💡, or say “joke” if you need a laugh 😂', 'happy');
+    var tasks = analyze(text);
+    if (!tasks.length) return bot('hmm, i could not spot a habit in that 🤔 try something like “i went to the gym” or “i spent too much time on insta”.', 'think');
+    run(tasks);
+  }
+
+  /* ---------- render ---------- */
+  function render(delta) {
+    var l = lvlOf(S.xp), p = S.xp % PER;
+    $('meName').textContent = S.name; $('meRank').textContent = titleOf(l);
+    $('meAv').innerHTML = avatarSVG(S.avatar, 64);
+    $('lvl').textContent = l;
+    $('ringbox').setAttribute('aria-label', 'Level ' + l);
+    $('ringFg').style.strokeDashoffset = String(238.76 * (1 - p / PER));
+    $('xpBar').style.width = p + '%';
+    $('xpText').textContent = p + ' / ' + PER + ' xp to the next level (' + S.xp + ' total)';
+    if (delta) {
+      var chip = document.createElement('div'); chip.className = 'xpchip ' + (delta > 0 ? 'up' : 'down'); chip.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta) + ' xp';
+      $('ringbox').appendChild(chip); setTimeout(function () { chip.remove(); }, 1400);
+      var rb = $('ringbox'); rb.classList.remove('pop'); void rb.offsetWidth; rb.classList.add('pop');
+    }
+    ['good', 'bad'].forEach(function (type) {
+      var ul = $(type + 'List'), items = S.habits.filter(function (h) { return h.type === type; });
+      $(type === 'good' ? 'gCount' : 'bCount').textContent = items.length;
+      ul.innerHTML = '';
+      if (!items.length) {
+        var li = document.createElement('li'); li.style.borderLeftColor = 'var(--line)';
+        li.innerHTML = '<span class="empty">' + (type === 'good' ? '🌱 Nothing yet. Tell Habitron something good you did today.' : '🫥 Nothing yet. Tell Habitron a habit you want to cut down.') + '</span>';
+        ul.appendChild(li); return;
+      }
+      items.forEach(function (h) {
+        var li = document.createElement('li');
+        var n = document.createElement('span'); n.className = 'nm'; n.textContent = emojiOf(h) + ' ' + h.name;
+        var c = document.createElement('span'); c.className = 'ct'; c.textContent = h.count + (h.count === 1 ? ' time' : ' times');
+        li.appendChild(n); li.appendChild(c);
+        var mk = function (label, cls, fn, aria) { var b = document.createElement('button'); b.type = 'button'; b.className = 'mini ' + cls; b.textContent = stripEmoji(label); if (aria) b.setAttribute('aria-label', aria); b.addEventListener('click', fn); li.appendChild(b); };
+        if (type === 'good') mk('Did it +15 💪', 'act', function () { logGood(h); });
+        else { mk('Slipped −20 🤕', 'act', function () { logSlip(h); }); mk('Resisted +10 😤', 'act', function () { logWin(h); }); }
+        mk('Tip 💡', 'tip', function () { bot(tipFor(h), 'happy'); }, 'Get a tip for ' + h.name);
+        mk('✕', 'x', function () { S.habits = S.habits.filter(function (x) { return x.id !== h.id; }); save(); render(); }, 'Remove ' + h.name);
+        ul.appendChild(li);
+      });
+    });
+  }
+
+  /* ---------- screens ---------- */
+  function avatarPicker(box, current, onPick, nameAttr) {
+    box.querySelectorAll('label').forEach(function (e) { e.remove(); });
+    AV_IDS.forEach(function (id) {
+      var l = document.createElement('label'), i = document.createElement('input');
+      i.type = 'radio'; i.name = nameAttr; i.value = id; i.checked = id === current;
+      i.setAttribute('aria-label', id);
+      i.addEventListener('change', function () { onPick(id); });
+      var a = document.createElement('span'); a.className = 'av'; a.innerHTML = avatarSVG(id, 64);
+      l.appendChild(i); l.appendChild(a); box.appendChild(l);
+    });
+  }
+  function showMain(first) {
+    $('welcome').hidden = true; $('main').hidden = false;
+    $('chatBot').innerHTML = botSVG();
+    $('log').innerHTML = '';
+    S.chat.forEach(function (m) { appendMsg(m.who, m.text, null, true); });
+    render();
+    var ideas = ['i went to the gym', 'i spent too much time on insta', 'i stayed up too late', 'i bit my nails again', 'i played games for hours', 'how do i stop scrolling?', 'tell me a joke'];
+    $('ideas').innerHTML = '';
+    ideas.forEach(function (t) { var b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.addEventListener('click', function () { handle(t); }); $('ideas').appendChild(b); });
+    avatarPicker($('avatarPick2'), S.avatar, function (id) { S.avatar = id; save(); render(); bot('ooh, new look! 😍 suits you, ' + nick() + '!', 'cheer'); }, 'av2');
+    if (first || !S.chat.length) { bot('hiya ' + nm() + '! 👋 i am habitron, your lil habit buddy 🤖💜', 'cheer'); bot('so, what did you do today?', 'happy'); }
+  }
+  function boot() {
+    $('welcomeBot').innerHTML = botSVG();
+    var chosen = 'cat';
+    avatarPicker($('avatarPick'), chosen, function (id) { chosen = id; }, 'av1');
+    $('startForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = $('nameInput').value.trim() || 'player';
+      S = { name: name, avatar: chosen, xp: 0, habits: [], chat: [] };
+      save(); showMain(true);
+    });
+    $('chatForm').addEventListener('submit', function (e) { e.preventDefault(); var i = $('chatInput'); var v = i.value; i.value = ''; if (S) handle(v); });
+    $('avBtn').addEventListener('click', function () { var b = $('avatarPick2'); b.hidden = !b.hidden; });
+    var rt = 0;
+    $('resetBtn').addEventListener('click', function () {
+      var b = $('resetBtn');
+      if (b.dataset.sure) { try { localStorage.removeItem(KEY); } catch (e) {} S = null; pending = null; queue = []; b.dataset.sure = ''; b.textContent = 'Start over'; $('main').hidden = true; $('welcome').hidden = false; return; }
+      b.dataset.sure = '1'; b.textContent = 'Really reset?'; clearTimeout(rt); rt = setTimeout(function () { b.dataset.sure = ''; b.textContent = 'Start over'; }, 3000);
+    });
+    var saved = load();
+    if (saved && saved.name) { S = saved; showMain(false); }
+  }
+  window.__hb = { state: function () { return S; }, say: handle, count: function () { return CATS.length; }, analyze: function (t) { return analyze(t).map(function (x) { return x.kind === 'cat' ? x.cat.key + (x.neg ? ':neg' : '') + (x.resist ? ':win' : '') : '?:' + x.clause; }); } };
+  boot();
+})();
+</script>
